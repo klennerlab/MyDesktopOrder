@@ -381,7 +381,6 @@ function saveSiteModal() {
 
 function renderSchemeModal() {
   $('modal-scheme-title').textContent = L.schemeTitle;
-  $('btn-scheme-close').textContent = L.cancel;
   const grid = $('scheme-grid');
   grid.innerHTML = '';
   const lang = currentLangCode();
@@ -472,7 +471,6 @@ async function init() {
   applyScheme(settings.scheme || 'steel');
   $('btn-lock').classList.toggle('active', !!settings.locked);
   document.body.classList.toggle('locked', !!settings.locked);
-  $('tape').hidden = !settings.locked;
   renderHome();
 
   // Header buttons
@@ -485,7 +483,6 @@ async function init() {
     settings.locked = await window.api.setLock(!settings.locked);
     $('btn-lock').classList.toggle('active', !!settings.locked);
     document.body.classList.toggle('locked', !!settings.locked);
-    $('tape').hidden = !settings.locked;
   });
   $('btn-menu').addEventListener('click', (event) => {
     event.stopPropagation();
