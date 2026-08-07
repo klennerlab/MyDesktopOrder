@@ -20,7 +20,8 @@ const I18N = {
     save: 'Speichern',
     cancel: 'Abbrechen',
     deleteProjectConfirm: 'Projekt „{name}“ wirklich löschen?',
-    emptyProjects: 'Noch keine Projekte.\nErstelle dein erstes Projekt mit dem Button unten!',
+    emptyProjects: 'Erstelle dein erstes Projekt!',
+    noIcon: 'Ohne Icon – der Titel füllt das Feld',
     emptySites: 'Noch keine Webseiten in diesem Projekt.\nFüge deine erste Seite hinzu!',
     openAll: 'Alle öffnen',
     openSelected: 'Ausgewählte öffnen ({n})',
@@ -52,7 +53,8 @@ const I18N = {
     save: 'Save',
     cancel: 'Cancel',
     deleteProjectConfirm: 'Really delete project "{name}"?',
-    emptyProjects: 'No projects yet.\nCreate your first project with the button below!',
+    emptyProjects: 'Create your first project!',
+    noIcon: 'No icon – the title fills the tile',
     emptySites: 'No websites in this project yet.\nAdd your first site!',
     openAll: 'Open all',
     openSelected: 'Open selected ({n})',
@@ -82,7 +84,7 @@ let settings = { alwaysOnTop: false, openAtLogin: false };
 let currentProjectId = null;
 let selectedSites = new Set();
 let editingProjectId = null; // null = creating a new project
-let chosenEmoji = EMOJIS[0];
+let chosenEmoji = null; // null = no icon, title fills the tile
 
 const uid = () => (crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random()));
 
@@ -129,10 +131,6 @@ function renderHome() {
     tile.className = 'project-tile';
     tile.title = project.name;
 
-    const icon = document.createElement('div');
-    icon.className = 'tile-icon';
-    icon.textContent = project.icon || '📁';
-
     const name = document.createElement('div');
     name.className = 'tile-name';
     name.textContent = project.name;
@@ -142,7 +140,15 @@ function renderHome() {
     const n = project.sites.length;
     count.textContent = `${n} ${n === 1 ? L.site : L.sites}`;
 
-    tile.append(icon, name, count);
+    if (project.icon) {
+      const icon = document.createElement('div');
+      icon.className = 'tile-icon';
+      icon.textContent = project.icon;
+      tile.append(icon, name, count);
+    } else {
+      tile.classList.add('no-icon');
+      tile.append(name, count);
+    }
     tile.addEventListener('click', () => openProject(project.id));
     grid.appendChild(tile);
   }
@@ -162,7 +168,7 @@ function renderProject() {
   $('footer-home').hidden = true;
   $('view-project').hidden = false;
   $('header-title').textContent = L.myProjects;
-  $('project-icon').textContent = project.icon || '📁';
+  $('project-icon').textContent = project.icon || '';
   $('project-name').textContent = project.name;
 
   const list = $('site-list');
@@ -250,7 +256,7 @@ function openProjectModal(projectId) {
 
   $('modal-project-title').textContent = project ? L.editProject : L.createProject;
   $('input-project-name').value = project ? project.name : '';
-  chosenEmoji = project ? project.icon : EMOJIS[0];
+  chosenEmoji = project ? project.icon || null : null;
   renderEmojiGrid();
   $('modal-project').hidden = false;
   $('input-project-name').focus();
@@ -259,6 +265,19 @@ function openProjectModal(projectId) {
 function renderEmojiGrid() {
   const grid = $('emoji-grid');
   grid.innerHTML = '';
+
+  const none = document.createElement('button');
+  none.type = 'button';
+  none.className = 'no-icon-option';
+  none.textContent = 'Aa';
+  none.title = L.noIcon;
+  if (!chosenEmoji) none.classList.add('selected');
+  none.addEventListener('click', () => {
+    chosenEmoji = null;
+    renderEmojiGrid();
+  });
+  grid.appendChild(none);
+
   for (const emoji of EMOJIS) {
     const btn = document.createElement('button');
     btn.textContent = emoji;
@@ -424,6 +443,8 @@ async function init() {
 
   // Home
   $('btn-new-project').addEventListener('click', () => openProjectModal(null));
+  $('empty-state').addEventListener('click', () => openProjectModal(null));
+  $('site-empty').addEventListener('click', openSiteModal);
 
   // Project view
   $('btn-back').addEventListener('click', renderHome);

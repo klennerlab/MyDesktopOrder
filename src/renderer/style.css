@@ -163,6 +163,24 @@ main::-webkit-scrollbar-thumb {
   font-size: 11px;
 }
 
+.project-tile.no-icon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 88px;
+}
+
+.project-tile.no-icon .tile-name {
+  font-size: 15px;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
 /* ---- Empty state ---- */
 
 .empty-state {
@@ -176,6 +194,13 @@ main::-webkit-scrollbar-thumb {
   text-align: center;
   padding: 20px;
   line-height: 1.5;
+  border-radius: 14px;
+  cursor: pointer;
+}
+
+#empty-state:hover {
+  background: var(--tile);
+  color: var(--text);
 }
 
 .empty-icon {
@@ -415,6 +440,12 @@ footer {
 
 .emoji-grid button:hover {
   background: var(--tile-hover);
+}
+
+.emoji-grid .no-icon-option {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-dim);
 }
 
 .emoji-grid button.selected {
