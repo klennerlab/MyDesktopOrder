@@ -8,6 +8,7 @@ contextBridge.exposeInMainWorld('api', {
   setLock: (value) => ipcRenderer.invoke('lock:set', value),
   setAutostart: (value) => ipcRenderer.invoke('autostart:set', value),
   setLanguage: (value) => ipcRenderer.invoke('lang:set', value),
+  setScheme: (value) => ipcRenderer.invoke('scheme:set', value),
   openExternal: (url) => ipcRenderer.invoke('link:external', url),
   quit: () => ipcRenderer.invoke('app:quit')
 });

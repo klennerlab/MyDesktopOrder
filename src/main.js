@@ -18,7 +18,8 @@ const DEFAULT_DATA = {
     alwaysOnTop: false,
     openAtLogin: false,
     language: null,
-    locked: false
+    locked: false,
+    scheme: 'steel'
   }
 };
 
@@ -302,6 +303,14 @@ ipcMain.handle('lock:set', (event, value) => {
   }
   persist();
   return data.settings.locked;
+});
+
+ipcMain.handle('scheme:set', (event, value) => {
+  if (typeof value === 'string' && value.length <= 30) {
+    data.settings.scheme = value;
+    persist();
+  }
+  return data.settings.scheme;
 });
 
 ipcMain.handle('lang:set', (event, value) => {

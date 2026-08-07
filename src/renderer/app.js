@@ -9,6 +9,31 @@ const EMOJIS = [
   '🍀', '🎯', '📊', '🧩', '📷', '🍕'
 ];
 
+const SCHEMES = [
+  { id: 'steel',    de: 'Stahlblau',  en: 'Steel Blue',   g1: '#9dc0da', g2: '#5e88ab', accent: '#6e9fc4', hover: '#85b4d6', dark: '#0c1826', bg: '12, 19, 27',  tint: '157, 192, 218' },
+  { id: 'graphite', de: 'Graphit',    en: 'Graphite',     g1: '#c9ced8', g2: '#838d9c', accent: '#98a4b4', hover: '#aeb9c8', dark: '#12151b', bg: '13, 15, 20',  tint: '201, 206, 216' },
+  { id: 'rose',     de: 'Roségold',   en: 'Rose Gold',    g1: '#e6b8ae', g2: '#b07a72', accent: '#c4938a', hover: '#d6a89f', dark: '#1f1210', bg: '24, 15, 15',  tint: '230, 184, 174' },
+  { id: 'ruby',     de: 'Rubinrot',   en: 'Ruby Red',     g1: '#e19097', g2: '#a84a58', accent: '#c06a75', hover: '#d28590', dark: '#200e12', bg: '25, 13, 16',  tint: '225, 144, 151' },
+  { id: 'emerald',  de: 'Smaragd',    en: 'Emerald',      g1: '#96d2b4', g2: '#469372', accent: '#62ab8c', hover: '#7cc0a2', dark: '#0d1f18', bg: '11, 22, 17',  tint: '150, 210, 180' },
+  { id: 'sage',     de: 'Salbei',     en: 'Sage Green',   g1: '#becbb2', g2: '#7e9070', accent: '#93a687', hover: '#a8bb9c', dark: '#151a11', bg: '16, 21, 15',  tint: '190, 203, 178' },
+  { id: 'amethyst', de: 'Amethyst',   en: 'Amethyst',     g1: '#c5abe2', g2: '#7f60ab', accent: '#9a7cc2', hover: '#ae92d4', dark: '#170f22', bg: '19, 15, 26',  tint: '197, 171, 226' },
+  { id: 'amber',    de: 'Bernstein',  en: 'Amber Gold',   g1: '#e9d09c', g2: '#b08f52', accent: '#c6a468', hover: '#d8b87e', dark: '#201705', bg: '23, 18, 8',   tint: '233, 208, 156' },
+  { id: 'ocean',    de: 'Ozean',      en: 'Ocean Teal',   g1: '#93d7d7', g2: '#47929e', accent: '#64abb4', hover: '#7dc2ca', dark: '#0b1d1f', bg: '10, 21, 23',  tint: '147, 215, 215' },
+  { id: 'sunset',   de: 'Koralle',    en: 'Coral Sunset', g1: '#f0b593', g2: '#c17049', accent: '#d18a64', hover: '#e0a078', dark: '#221108', bg: '25, 15, 10',  tint: '240, 181, 147' }
+];
+
+function applyScheme(id) {
+  const scheme = SCHEMES.find((s) => s.id === id) || SCHEMES[0];
+  const root = document.documentElement.style;
+  root.setProperty('--steel', `linear-gradient(180deg, ${scheme.g1} 0%, ${scheme.g2} 100%)`);
+  root.setProperty('--steel-text', scheme.dark);
+  root.setProperty('--accent', scheme.accent);
+  root.setProperty('--accent-hover', scheme.hover);
+  root.setProperty('--bg-rgb', scheme.bg);
+  root.setProperty('--tint-rgb', scheme.tint);
+  document.body.dataset.scheme = scheme.id;
+}
+
 const I18N = {
   de: {
     myProjects: 'Meine Projekte',
@@ -34,7 +59,8 @@ const I18N = {
     site: 'Seite',
     pin: 'Immer im Vordergrund',
     lock: 'Sticker-Modus: Position fixieren',
-    lockedChip: '🧷 Fixiert',
+    schemeMenu: 'Farbschema wählen',
+    schemeTitle: 'Farbschema',
     back: 'Zurück',
     close: 'Schließen',
     menu: 'Menü',
@@ -69,7 +95,8 @@ const I18N = {
     site: 'site',
     pin: 'Always on top',
     lock: 'Sticker mode: lock position',
-    lockedChip: '🧷 Pinned',
+    schemeMenu: 'Choose color scheme',
+    schemeTitle: 'Color scheme',
     back: 'Back',
     close: 'Close',
     menu: 'Menu',
@@ -352,8 +379,38 @@ function saveSiteModal() {
 
 // ---- Menu ----
 
+function renderSchemeModal() {
+  $('modal-scheme-title').textContent = L.schemeTitle;
+  $('btn-scheme-close').textContent = L.cancel;
+  const grid = $('scheme-grid');
+  grid.innerHTML = '';
+  const lang = currentLangCode();
+  for (const scheme of SCHEMES) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'scheme-option';
+    if (document.body.dataset.scheme === scheme.id) btn.classList.add('selected');
+
+    const swatch = document.createElement('span');
+    swatch.className = 'scheme-swatch';
+    swatch.style.background = `linear-gradient(135deg, ${scheme.g1}, ${scheme.g2})`;
+
+    const name = document.createElement('span');
+    name.textContent = lang === 'de' ? scheme.de : scheme.en;
+
+    btn.append(swatch, name);
+    btn.addEventListener('click', async () => {
+      settings.scheme = await window.api.setScheme(scheme.id);
+      applyScheme(scheme.id);
+      renderSchemeModal();
+    });
+    grid.appendChild(btn);
+  }
+}
+
 function renderMenu() {
   $('menu-language').textContent = L.language;
+  $('menu-scheme').textContent = L.schemeMenu;
   $('menu-autostart').textContent = settings.openAtLogin ? L.autostartOn : L.autostartOff;
   $('menu-github').textContent = L.github;
   $('menu-quit').textContent = L.quit;
@@ -378,7 +435,6 @@ function applyTexts() {
   $('site-empty-text').textContent = L.emptySites;
   $('btn-pin').title = L.pin;
   $('btn-lock').title = L.lock;
-  $('lock-chip').textContent = L.lockedChip;
   $('btn-menu').title = L.menu;
   $('btn-close').title = L.close;
   $('btn-back').textContent = '‹';
@@ -413,9 +469,10 @@ async function init() {
 
   applyTexts();
   $('btn-pin').classList.toggle('active', !!settings.alwaysOnTop);
+  applyScheme(settings.scheme || 'steel');
   $('btn-lock').classList.toggle('active', !!settings.locked);
   document.body.classList.toggle('locked', !!settings.locked);
-  $('lock-chip').hidden = !settings.locked;
+  $('tape').hidden = !settings.locked;
   renderHome();
 
   // Header buttons
@@ -428,7 +485,7 @@ async function init() {
     settings.locked = await window.api.setLock(!settings.locked);
     $('btn-lock').classList.toggle('active', !!settings.locked);
     document.body.classList.toggle('locked', !!settings.locked);
-    $('lock-chip').hidden = !settings.locked;
+    $('tape').hidden = !settings.locked;
   });
   $('btn-menu').addEventListener('click', (event) => {
     event.stopPropagation();
@@ -446,6 +503,12 @@ async function init() {
     refreshUi();
     $('menu').hidden = true;
   });
+  $('menu-scheme').addEventListener('click', () => {
+    renderSchemeModal();
+    $('modal-scheme').hidden = false;
+    $('menu').hidden = true;
+  });
+  $('btn-scheme-close').addEventListener('click', () => ($('modal-scheme').hidden = true));
   $('menu-autostart').addEventListener('click', async () => {
     settings.openAtLogin = await window.api.setAutostart(!settings.openAtLogin);
     renderMenu();
@@ -501,6 +564,7 @@ async function init() {
     if (e.key === 'Escape') {
       $('modal-project').hidden = true;
       $('modal-site').hidden = true;
+      $('modal-scheme').hidden = true;
       $('menu').hidden = true;
     }
   });

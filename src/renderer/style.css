@@ -9,16 +9,20 @@
   display: none !important;
 }
 
+/* Color scheme variables — overridden at runtime by the scheme picker (app.js) */
 :root {
-  --text: rgba(235, 243, 249, 0.94);
-  --text-dim: rgba(198, 218, 233, 0.55);
-  --line: rgba(170, 205, 232, 0.12);
-  --tile: rgba(170, 205, 232, 0.08);
-  --tile-hover: rgba(170, 205, 232, 0.16);
+  --bg-rgb: 12, 19, 27;
+  --tint-rgb: 157, 192, 218;
   --accent: #6e9fc4;
   --accent-hover: #85b4d6;
   --steel: linear-gradient(180deg, #9dc0da 0%, #5e88ab 100%);
   --steel-text: #0c1826;
+
+  --text: rgba(244, 247, 250, 0.94);
+  --text-dim: rgba(var(--tint-rgb), 0.62);
+  --line: rgba(var(--tint-rgb), 0.12);
+  --tile: rgba(var(--tint-rgb), 0.08);
+  --tile-hover: rgba(var(--tint-rgb), 0.16);
   --danger: #ff5f57;
   --radius: 22px;
 }
@@ -40,43 +44,47 @@ body {
   height: 100vh;
   border-radius: var(--radius);
   overflow: hidden;
-  border: 1px solid rgba(180, 212, 236, 0.14);
-  background: rgba(12, 19, 27, 0.62);
+  border: 1px solid rgba(var(--tint-rgb), 0.14);
+  background: rgba(var(--bg-rgb), 0.62);
 }
 
 body.mac .widget {
-  background: rgba(12, 19, 27, 0.42);
-  border-color: rgba(180, 212, 236, 0.1);
+  background: rgba(var(--bg-rgb), 0.42);
+  border-color: rgba(var(--tint-rgb), 0.1);
 }
 
 body.win .widget,
 body.linux .widget {
-  background: #0e1721;
+  background: rgb(var(--bg-rgb));
   border-radius: 0;
   border: none;
 }
 
-/* Sticker mode: window is locked in place */
+/* ---- Sticker mode: window is locked in place ---- */
+
 body.locked .drag {
   -webkit-app-region: no-drag;
 }
 
 body.locked .widget {
-  border-color: rgba(157, 192, 218, 0.55);
-  box-shadow: inset 0 0 0 1px rgba(157, 192, 218, 0.25), 0 0 22px rgba(110, 159, 196, 0.3);
+  border-color: rgba(var(--tint-rgb), 0.5);
+  box-shadow: inset 0 0 0 1px rgba(var(--tint-rgb), 0.22), 0 0 22px rgba(var(--tint-rgb), 0.25);
 }
 
-.lock-chip {
-  margin-left: 8px;
-  padding: 2px 9px;
-  border-radius: 999px;
-  background: var(--steel);
-  color: var(--steel-text);
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.3px;
-  vertical-align: 2px;
-  white-space: nowrap;
+/* The tape strip shown while sticker mode is active */
+#tape {
+  position: absolute;
+  top: 3px;
+  left: 50%;
+  width: 132px;
+  height: 30px;
+  transform: translateX(-50%) rotate(-3deg);
+  background: linear-gradient(180deg, rgba(238, 226, 188, 0.52) 0%, rgba(219, 204, 158, 0.46) 100%);
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.25);
+  clip-path: polygon(0% 10%, 3% 0%, 97% 3%, 100% 12%, 99% 88%, 96% 100%, 4% 97%, 1% 86%);
+  backdrop-filter: blur(2px);
+  z-index: 40;
+  pointer-events: none;
 }
 
 /* ---- Header ---- */
@@ -151,7 +159,7 @@ main::-webkit-scrollbar {
 }
 
 main::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(var(--tint-rgb), 0.22);
   border-radius: 3px;
 }
 
@@ -233,7 +241,7 @@ main::-webkit-scrollbar-thumb {
   cursor: pointer;
 }
 
-#empty-state:hover {
+.empty-state:hover {
   background: var(--tile);
   color: var(--text);
 }
@@ -389,7 +397,7 @@ button.ghost {
 
 button.ghost:hover {
   color: var(--text);
-  border-color: rgba(255, 255, 255, 0.3);
+  border-color: rgba(var(--tint-rgb), 0.35);
 }
 
 footer {
@@ -418,8 +426,9 @@ footer {
   width: calc(100% - 48px);
   max-height: calc(100% - 60px);
   overflow-y: auto;
-  background: #14202c;
-  border: 1px solid rgba(180, 212, 236, 0.18);
+  background: linear-gradient(rgba(var(--tint-rgb), 0.07), rgba(var(--tint-rgb), 0.07)),
+    rgb(var(--bg-rgb));
+  border: 1px solid rgba(var(--tint-rgb), 0.2);
   border-radius: 16px;
   padding: 18px;
   display: flex;
@@ -445,7 +454,7 @@ footer {
 .modal input {
   border: 1px solid var(--line);
   border-radius: 10px;
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(var(--tint-rgb), 0.07);
   color: var(--text);
   padding: 8px 10px;
   font-size: 13px;
@@ -477,15 +486,15 @@ footer {
   background: var(--tile-hover);
 }
 
+.emoji-grid button.selected {
+  border-color: var(--accent);
+  background: rgba(var(--tint-rgb), 0.22);
+}
+
 .emoji-grid .no-icon-option {
   font-size: 13px;
   font-weight: 700;
   color: var(--text-dim);
-}
-
-.emoji-grid button.selected {
-  border-color: var(--accent);
-  background: rgba(110, 159, 196, 0.22);
 }
 
 .modal-buttons {
@@ -495,14 +504,56 @@ footer {
   margin-top: 10px;
 }
 
+/* ---- Color scheme picker ---- */
+
+.scheme-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.scheme-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid var(--line);
+  background: var(--tile);
+  border-radius: 12px;
+  padding: 8px 10px;
+  cursor: pointer;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  text-align: left;
+}
+
+.scheme-option:hover {
+  background: var(--tile-hover);
+}
+
+.scheme-option.selected {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+
+.scheme-swatch {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+}
+
 /* ---- Dropdown menu ---- */
 
 .menu {
   position: absolute;
   top: 42px;
   right: 12px;
-  background: #14202c;
-  border: 1px solid rgba(180, 212, 236, 0.18);
+  background: linear-gradient(rgba(var(--tint-rgb), 0.07), rgba(var(--tint-rgb), 0.07)),
+    rgb(var(--bg-rgb));
+  border: 1px solid rgba(var(--tint-rgb), 0.2);
   border-radius: 12px;
   padding: 6px;
   z-index: 30;

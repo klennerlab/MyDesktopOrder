@@ -10,8 +10,10 @@
 <body>
   <div class="widget" id="widget">
 
+    <div id="tape" hidden></div>
+
     <header class="drag">
-      <div class="header-title"><span id="header-title">Meine Projekte</span><span id="lock-chip" class="lock-chip" hidden></span></div>
+      <div class="header-title"><span id="header-title">Meine Projekte</span></div>
       <div class="header-buttons no-drag">
         <button id="btn-lock" class="icon-btn" title="">🧷</button>
         <button id="btn-pin" class="icon-btn" title=""></button>
@@ -88,9 +90,21 @@
       </div>
     </div>
 
+    <!-- Modal: color scheme picker -->
+    <div id="modal-scheme" class="overlay" hidden>
+      <div class="modal">
+        <h3 id="modal-scheme-title"></h3>
+        <div id="scheme-grid" class="scheme-grid"></div>
+        <div class="modal-buttons">
+          <button id="btn-scheme-close" class="ghost"></button>
+        </div>
+      </div>
+    </div>
+
     <!-- Dropdown menu -->
     <div id="menu" class="menu no-drag" hidden>
       <button id="menu-language" class="menu-item"></button>
+      <button id="menu-scheme" class="menu-item"></button>
       <button id="menu-autostart" class="menu-item"></button>
       <button id="menu-github" class="menu-item"></button>
       <button id="menu-quit" class="menu-item danger"></button>
