@@ -72,8 +72,13 @@ const I18N = {
     sites: 'Seiten',
     site: 'Seite',
     lock: 'Position fixieren',
-    ontopOn: '✓ Immer im Vordergrund',
-    ontopOff: 'Immer im Vordergrund',
+    layerMenu: 'Fensterebene',
+    layerTitle: 'Fensterebene',
+    layerTop: 'Immer im Vordergrund',
+    layerNormal: 'Normal (kann verdeckt werden)',
+    layerShortTop: 'Vordergrund',
+    layerShortNormal: 'Normal',
+    languageTitle: 'Sprache',
     schemeMenu: 'Farbschema wählen',
     schemeTitle: 'Farbschema',
     back: 'Zurück',
@@ -82,7 +87,7 @@ const I18N = {
     autostartOn: '✓ Beim Anmelden starten',
     autostartOff: 'Beim Anmelden starten',
     github: 'Auf GitHub ansehen',
-    language: 'Language: English',
+    language: 'Sprache · Deutsch',
     hideWindow: 'Schließen (in Menüleiste)',
     quit: 'Beenden',
     invalidUrl: 'Bitte gib eine gültige Adresse ein, z. B. https://www.notion.com'
@@ -115,8 +120,13 @@ const I18N = {
     sites: 'sites',
     site: 'site',
     lock: 'Lock position',
-    ontopOn: '✓ Always on top',
-    ontopOff: 'Always on top',
+    layerMenu: 'Window layer',
+    layerTitle: 'Window layer',
+    layerTop: 'Always on top',
+    layerNormal: 'Normal (can be covered)',
+    layerShortTop: 'On top',
+    layerShortNormal: 'Normal',
+    languageTitle: 'Language',
     schemeMenu: 'Choose color scheme',
     schemeTitle: 'Color scheme',
     back: 'Back',
@@ -125,7 +135,7 @@ const I18N = {
     autostartOn: '✓ Start at login',
     autostartOff: 'Start at login',
     github: 'View on GitHub',
-    language: 'Sprache: Deutsch',
+    language: 'Language · English',
     hideWindow: 'Close (keep in menu bar)',
     quit: 'Quit',
     invalidUrl: 'Please enter a valid address, e.g. https://www.notion.com'
@@ -523,10 +533,71 @@ function renderSchemeModal() {
   }
 }
 
+function renderChoiceList(containerId, options, selectedValue, onPick) {
+  const list = $(containerId);
+  list.innerHTML = '';
+  for (const option of options) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'choice-option';
+    if (option.value === selectedValue) btn.classList.add('selected');
+
+    const label = document.createElement('span');
+    label.textContent = option.label;
+    btn.appendChild(label);
+
+    if (option.value === selectedValue) {
+      const check = document.createElement('span');
+      check.className = 'check';
+      check.textContent = '✓';
+      btn.appendChild(check);
+    }
+    btn.addEventListener('click', () => onPick(option.value));
+    list.appendChild(btn);
+  }
+}
+
+function openLanguageModal() {
+  $('modal-language-title').textContent = L.languageTitle;
+  renderChoiceList(
+    'language-list',
+    [
+      { value: 'de', label: 'Deutsch' },
+      { value: 'en', label: 'English' }
+    ],
+    currentLangCode(),
+    async (code) => {
+      settings.language = await window.api.setLanguage(code);
+      L = code === 'de' ? I18N.de : I18N.en;
+      refreshUi();
+      $('modal-language').hidden = true;
+    }
+  );
+  $('modal-language').hidden = false;
+}
+
+function openLayerModal() {
+  $('modal-layer-title').textContent = L.layerTitle;
+  renderChoiceList(
+    'layer-list',
+    [
+      { value: 'top', label: L.layerTop },
+      { value: 'normal', label: L.layerNormal }
+    ],
+    settings.alwaysOnTop ? 'top' : 'normal',
+    async (value) => {
+      settings.alwaysOnTop = await window.api.setPin(value === 'top');
+      renderMenu();
+      $('modal-layer').hidden = true;
+    }
+  );
+  $('modal-layer').hidden = false;
+}
+
 function renderMenu() {
   $('menu-language').textContent = L.language;
   $('menu-scheme').textContent = L.schemeMenu;
-  $('menu-ontop').textContent = settings.alwaysOnTop ? L.ontopOn : L.ontopOff;
+  $('menu-ontop').textContent = `${L.layerMenu} · ${settings.alwaysOnTop ? L.layerShortTop : L.layerShortNormal}`;
   $('menu-autostart').textContent = settings.openAtLogin ? L.autostartOn : L.autostartOff;
   $('menu-hide').textContent = L.hideWindow;
   $('menu-github').textContent = L.github;
@@ -605,16 +676,13 @@ async function init() {
   });
 
   // Menu
-  $('menu-language').addEventListener('click', async () => {
-    const next = currentLangCode() === 'de' ? 'en' : 'de';
-    settings.language = await window.api.setLanguage(next);
-    L = settings.language === 'de' ? I18N.de : I18N.en;
-    refreshUi();
+  $('menu-language').addEventListener('click', () => {
+    openLanguageModal();
     $('menu').hidden = true;
   });
-  $('menu-ontop').addEventListener('click', async () => {
-    settings.alwaysOnTop = await window.api.setPin(!settings.alwaysOnTop);
-    renderMenu();
+  $('menu-ontop').addEventListener('click', () => {
+    openLayerModal();
+    $('menu').hidden = true;
   });
   $('menu-scheme').addEventListener('click', () => {
     renderSchemeModal();
@@ -692,11 +760,17 @@ async function init() {
   }
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
-      $('modal-project').hidden = true;
-      $('modal-site').hidden = true;
-      $('modal-scheme').hidden = true;
+      for (const id of ['modal-project', 'modal-site', 'modal-scheme', 'modal-language', 'modal-layer']) {
+        $(id).hidden = true;
+      }
       $('menu').hidden = true;
     }
+  });
+  // Clicking the dark backdrop closes any modal
+  document.querySelectorAll('.overlay').forEach((overlay) => {
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) overlay.hidden = true;
+    });
   });
 }
 

@@ -616,6 +616,45 @@ footer {
   border: 1px solid rgba(255, 255, 255, 0.25);
 }
 
+/* ---- Choice lists (language, window layer) ---- */
+
+.choice-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.choice-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border: 1px solid var(--line);
+  background: var(--tile);
+  border-radius: 12px;
+  padding: 9px 12px;
+  cursor: pointer;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: left;
+}
+
+.choice-option:hover {
+  background: var(--tile-hover);
+}
+
+.choice-option.selected {
+  border-color: var(--accent);
+}
+
+.choice-option .check {
+  color: var(--accent);
+  font-weight: 700;
+}
+
 /* ---- Dropdown menu ---- */
 
 .menu {
