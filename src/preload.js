@@ -5,6 +5,7 @@ contextBridge.exposeInMainWorld('api', {
   saveProjects: (projects) => ipcRenderer.invoke('projects:save', projects),
   openUrls: (urls, opts) => ipcRenderer.invoke('urls:open', urls, opts),
   setPin: (value) => ipcRenderer.invoke('pin:set', value),
+  setLock: (value) => ipcRenderer.invoke('lock:set', value),
   setAutostart: (value) => ipcRenderer.invoke('autostart:set', value),
   setLanguage: (value) => ipcRenderer.invoke('lang:set', value),
   openExternal: (url) => ipcRenderer.invoke('link:external', url),

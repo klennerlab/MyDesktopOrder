@@ -18,7 +18,7 @@
   --accent: #4f8ef7;
   --accent-hover: #66a0ff;
   --danger: #ff5f57;
-  --radius: 18px;
+  --radius: 22px;
 }
 
 html,
@@ -40,6 +40,15 @@ body {
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.12);
   background: rgba(27, 31, 42, 0.6);
+}
+
+body.mac .widget {
+  background: rgba(22, 26, 36, 0.42);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+body.locked .drag {
+  -webkit-app-region: no-drag;
 }
 
 body.win .widget,

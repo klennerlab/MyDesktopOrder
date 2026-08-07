@@ -33,6 +33,7 @@ const I18N = {
     sites: 'Seiten',
     site: 'Seite',
     pin: 'Immer im Vordergrund',
+    lock: 'Sticker-Modus: Position fixieren',
     back: 'Zurück',
     close: 'Schließen',
     menu: 'Menü',
@@ -66,6 +67,7 @@ const I18N = {
     sites: 'sites',
     site: 'site',
     pin: 'Always on top',
+    lock: 'Sticker mode: lock position',
     back: 'Back',
     close: 'Close',
     menu: 'Menu',
@@ -373,6 +375,7 @@ function applyTexts() {
   $('empty-text').textContent = L.emptyProjects;
   $('site-empty-text').textContent = L.emptySites;
   $('btn-pin').title = L.pin;
+  $('btn-lock').title = L.lock;
   $('btn-menu').title = L.menu;
   $('btn-close').title = L.close;
   $('btn-back').textContent = '‹';
@@ -407,6 +410,8 @@ async function init() {
 
   applyTexts();
   $('btn-pin').classList.toggle('active', !!settings.alwaysOnTop);
+  $('btn-lock').classList.toggle('active', !!settings.locked);
+  document.body.classList.toggle('locked', !!settings.locked);
   renderHome();
 
   // Header buttons
@@ -414,6 +419,11 @@ async function init() {
   $('btn-pin').addEventListener('click', async () => {
     settings.alwaysOnTop = await window.api.setPin(!settings.alwaysOnTop);
     $('btn-pin').classList.toggle('active', !!settings.alwaysOnTop);
+  });
+  $('btn-lock').addEventListener('click', async () => {
+    settings.locked = await window.api.setLock(!settings.locked);
+    $('btn-lock').classList.toggle('active', !!settings.locked);
+    document.body.classList.toggle('locked', !!settings.locked);
   });
   $('btn-menu').addEventListener('click', (event) => {
     event.stopPropagation();

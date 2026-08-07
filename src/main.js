@@ -17,7 +17,8 @@ const DEFAULT_DATA = {
   settings: {
     alwaysOnTop: false,
     openAtLogin: false,
-    language: null
+    language: null,
+    locked: false
   }
 };
 
@@ -91,6 +92,11 @@ function createWindow() {
   });
 
   win.loadFile(path.join(__dirname, 'renderer', 'index.html'));
+
+  if (data.settings.locked) {
+    win.setMovable(false);
+    win.setResizable(false);
+  }
 
   const saveBounds = () => {
     if (!win || win.isDestroyed()) return;
@@ -286,6 +292,16 @@ ipcMain.handle('autostart:set', (event, value) => {
   app.setLoginItemSettings({ openAtLogin: !!value });
   persist();
   return data.settings.openAtLogin;
+});
+
+ipcMain.handle('lock:set', (event, value) => {
+  data.settings.locked = !!value;
+  if (win) {
+    win.setMovable(!data.settings.locked);
+    win.setResizable(!data.settings.locked);
+  }
+  persist();
+  return data.settings.locked;
 });
 
 ipcMain.handle('lang:set', (event, value) => {
