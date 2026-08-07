@@ -329,12 +329,20 @@ main::-webkit-scrollbar-thumb {
   white-space: nowrap;
 }
 
-.site-remove {
+.site-action {
   opacity: 0;
 }
 
-.site-row:hover .site-remove {
+.site-row:hover .site-action {
   opacity: 1;
+}
+
+.site-row.dragging {
+  opacity: 0.4;
+}
+
+.site-row.drag-over {
+  border-color: var(--accent);
 }
 
 /* ---- Buttons ---- */
@@ -513,6 +521,51 @@ footer {
   font-size: 13px;
   font-weight: 700;
   color: var(--text-dim);
+}
+
+.toggle-emojis {
+  font-size: 11px;
+  padding: 5px 8px;
+}
+
+.logo-option {
+  border: 1px solid transparent;
+  background: transparent;
+  border-radius: 8px;
+  padding: 4px;
+  cursor: pointer;
+}
+
+.logo-option img {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: contain;
+  border-radius: 6px;
+  display: block;
+}
+
+.logo-option:hover {
+  background: var(--tile-hover);
+}
+
+.logo-option.selected {
+  border-color: var(--accent);
+  background: rgba(var(--tint-rgb), 0.22);
+}
+
+.tile-logo {
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+  display: block;
+  margin: 0 auto;
+}
+
+.head-logo {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  display: block;
 }
 
 .modal-buttons {

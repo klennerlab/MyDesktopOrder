@@ -3,11 +3,20 @@ const $ = (id) => document.getElementById(id);
 const GITHUB_URL = 'https://github.com/klennerlab/MyDesktopOrder';
 
 const EMOJIS = [
-  '📁', '💼', '🌐', '⚽', '🐴', '🏆',
-  '🎨', '📚', '💻', '📝', '🎵', '🎬',
-  '🛒', '✈️', '🏠', '❤️', '⭐', '🔥',
-  '🍀', '🎯', '📊', '🧩', '📷', '🍕'
+  '📁', '💼', '🌐', '📝', '💻', '📊',
+  '⚽', '🐴', '🏆', '🎾', '🏀', '🏐',
+  '🎨', '🎵', '🎬', '📷', '🎭', '🎮',
+  '📚', '🎓', '🔬', '🧪', '💡', '🔍',
+  '🛒', '💰', '📈', '📉', '🏦', '🧾',
+  '✈️', '🚗', '🧳', '🗺️', '🌍', '🏖️',
+  '🏠', '🏢', '🏫', '🏥', '🏋️', '🧘',
+  '❤️', '💙', '💚', '💛', '🧡', '💜',
+  '⭐', '🌟', '✨', '🔥', '⚡', '🚀',
+  '🍀', '🌈', '☀️', '🌙', '🌸', '🌿',
+  '🎯', '🧩', '🎲', '🥇', '🎁', '🎉',
+  '🍕', '🍔', '☕', '🍷', '🎂', '🍎'
 ];
+const EMOJI_PREVIEW_COUNT = 17; // + the "Aa" option = 3 rows of 6
 
 const SCHEMES = [
   { id: 'steel',    de: 'Stahlblau',  en: 'Steel Blue',   g1: '#9dc0da', g2: '#5e88ab', accent: '#6e9fc4', hover: '#85b4d6', dark: '#0c1826', bg: '12, 19, 27',  tint: '157, 192, 218' },
@@ -52,6 +61,11 @@ const I18N = {
     openSelected: 'Ausgewählte öffnen ({n})',
     addSite: '＋ Seite hinzufügen',
     addSiteTitle: 'Seite hinzufügen',
+    editSiteTitle: 'Seite bearbeiten',
+    moreIcons: 'Mehr anzeigen ▾',
+    lessIcons: 'Weniger anzeigen ▴',
+    logoLabel: 'Eigene Logos',
+    uploadLogo: '＋ Eigenes Logo hochladen',
     siteName: 'Titel (optional)',
     siteUrl: 'Adresse (URL)',
     removeSiteConfirm: '„{name}“ aus dem Projekt entfernen?',
@@ -90,6 +104,11 @@ const I18N = {
     openSelected: 'Open selected ({n})',
     addSite: '＋ Add site',
     addSiteTitle: 'Add site',
+    editSiteTitle: 'Edit site',
+    moreIcons: 'Show more ▾',
+    lessIcons: 'Show less ▴',
+    logoLabel: 'Your logos',
+    uploadLogo: '＋ Upload your own logo',
     siteName: 'Title (optional)',
     siteUrl: 'Address (URL)',
     removeSiteConfirm: 'Remove "{name}" from this project?',
@@ -119,7 +138,12 @@ let settings = { alwaysOnTop: false, openAtLogin: false };
 let currentProjectId = null;
 let selectedSites = new Set();
 let editingProjectId = null; // null = creating a new project
-let chosenEmoji = null; // null = no icon, title fills the tile
+let editingSiteId = null; // null = adding a new site
+let chosenIcon = null; // null = no icon; emoji string; or data-URL of an uploaded logo
+let emojiExpanded = false;
+let logos = [];
+
+const isLogo = (icon) => typeof icon === 'string' && icon.startsWith('data:');
 
 const uid = () => (crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random()));
 
@@ -175,7 +199,12 @@ function renderHome() {
     const n = project.sites.length;
     count.textContent = `${n} ${n === 1 ? L.site : L.sites}`;
 
-    if (project.icon) {
+    if (isLogo(project.icon)) {
+      const icon = document.createElement('img');
+      icon.className = 'tile-logo';
+      icon.src = project.icon;
+      tile.append(icon, name, count);
+    } else if (project.icon) {
       const icon = document.createElement('div');
       icon.className = 'tile-icon';
       icon.textContent = project.icon;
@@ -203,7 +232,16 @@ function renderProject() {
   $('footer-home').hidden = true;
   $('view-project').hidden = false;
   $('header-title').textContent = L.myProjects;
-  $('project-icon').textContent = project.icon || '';
+  const iconEl = $('project-icon');
+  iconEl.textContent = '';
+  if (isLogo(project.icon)) {
+    const img = document.createElement('img');
+    img.className = 'head-logo';
+    img.src = project.icon;
+    iconEl.appendChild(img);
+  } else {
+    iconEl.textContent = project.icon || '';
+  }
   $('project-name').textContent = project.name;
 
   const list = $('site-list');
@@ -255,8 +293,14 @@ function renderProject() {
     info.append(title, urlLine);
     info.addEventListener('click', () => window.api.openUrls([site.url]));
 
+    const edit = document.createElement('button');
+    edit.className = 'icon-btn site-action';
+    edit.textContent = '✎';
+    edit.title = L.editSiteTitle;
+    edit.addEventListener('click', () => openSiteModal(site.id));
+
     const remove = document.createElement('button');
-    remove.className = 'icon-btn danger site-remove';
+    remove.className = 'icon-btn danger site-action';
     remove.textContent = '✕';
     remove.title = L.close;
     remove.addEventListener('click', () => {
@@ -267,7 +311,36 @@ function renderProject() {
       renderProject();
     });
 
-    row.append(checkbox, favicon, info, remove);
+    // Drag & drop reordering
+    row.draggable = true;
+    row.dataset.siteId = site.id;
+    row.addEventListener('dragstart', (e) => {
+      e.dataTransfer.setData('text/plain', site.id);
+      e.dataTransfer.effectAllowed = 'move';
+      row.classList.add('dragging');
+    });
+    row.addEventListener('dragend', () => row.classList.remove('dragging'));
+    row.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      row.classList.add('drag-over');
+    });
+    row.addEventListener('dragleave', () => row.classList.remove('drag-over'));
+    row.addEventListener('drop', (e) => {
+      e.preventDefault();
+      row.classList.remove('drag-over');
+      const draggedId = e.dataTransfer.getData('text/plain');
+      if (!draggedId || draggedId === site.id) return;
+      const fromIdx = project.sites.findIndex((s) => s.id === draggedId);
+      const toIdx = project.sites.findIndex((s) => s.id === site.id);
+      if (fromIdx < 0 || toIdx < 0) return;
+      const [moved] = project.sites.splice(fromIdx, 1);
+      project.sites.splice(toIdx, 0, moved);
+      saveProjects();
+      renderProject();
+    });
+
+    row.append(checkbox, favicon, info, edit, remove);
     list.appendChild(row);
   }
 
@@ -291,8 +364,10 @@ function openProjectModal(projectId) {
 
   $('modal-project-title').textContent = project ? L.editProject : L.createProject;
   $('input-project-name').value = project ? project.name : '';
-  chosenEmoji = project ? project.icon || null : null;
+  chosenIcon = project ? project.icon || null : null;
+  emojiExpanded = false;
   renderEmojiGrid();
+  renderLogoGrid();
   $('modal-project').hidden = false;
   $('input-project-name').focus();
 }
@@ -306,24 +381,50 @@ function renderEmojiGrid() {
   none.className = 'no-icon-option';
   none.textContent = 'Aa';
   none.title = L.noIcon;
-  if (!chosenEmoji) none.classList.add('selected');
+  if (!chosenIcon) none.classList.add('selected');
   none.addEventListener('click', () => {
-    chosenEmoji = null;
+    chosenIcon = null;
     renderEmojiGrid();
+    renderLogoGrid();
   });
   grid.appendChild(none);
 
-  for (const emoji of EMOJIS) {
+  const list = emojiExpanded ? EMOJIS : EMOJIS.slice(0, EMOJI_PREVIEW_COUNT);
+  for (const emoji of list) {
     const btn = document.createElement('button');
     btn.textContent = emoji;
     btn.type = 'button';
-    if (emoji === chosenEmoji) btn.classList.add('selected');
+    if (emoji === chosenIcon) btn.classList.add('selected');
     btn.addEventListener('click', () => {
-      chosenEmoji = emoji;
+      chosenIcon = emoji;
       renderEmojiGrid();
+      renderLogoGrid();
     });
     grid.appendChild(btn);
   }
+
+  $('btn-toggle-emojis').textContent = emojiExpanded ? L.lessIcons : L.moreIcons;
+}
+
+function renderLogoGrid() {
+  const grid = $('logo-grid');
+  grid.innerHTML = '';
+  for (const logo of logos) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'logo-option';
+    if (logo === chosenIcon) btn.classList.add('selected');
+    const img = document.createElement('img');
+    img.src = logo;
+    btn.appendChild(img);
+    btn.addEventListener('click', () => {
+      chosenIcon = logo;
+      renderEmojiGrid();
+      renderLogoGrid();
+    });
+    grid.appendChild(btn);
+  }
+  $('label-project-logo').hidden = logos.length === 0;
 }
 
 function saveProjectModal() {
@@ -336,10 +437,10 @@ function saveProjectModal() {
     const project = projects.find((p) => p.id === editingProjectId);
     if (project) {
       project.name = name;
-      project.icon = chosenEmoji;
+      project.icon = chosenIcon;
     }
   } else {
-    projects.push({ id: uid(), name, icon: chosenEmoji, sites: [] });
+    projects.push({ id: uid(), name, icon: chosenIcon, sites: [] });
   }
   saveProjects();
   $('modal-project').hidden = true;
@@ -349,10 +450,14 @@ function saveProjectModal() {
 
 // ---- Site modal ----
 
-function openSiteModal() {
-  $('modal-site-title').textContent = L.addSiteTitle;
-  $('input-site-name').value = '';
-  $('input-site-url').value = '';
+function openSiteModal(siteId) {
+  editingSiteId = typeof siteId === 'string' ? siteId : null;
+  const project = currentProject();
+  const site = editingSiteId && project ? project.sites.find((s) => s.id === editingSiteId) : null;
+
+  $('modal-site-title').textContent = site ? L.editSiteTitle : L.addSiteTitle;
+  $('input-site-name').value = site ? site.title : '';
+  $('input-site-url').value = site ? site.url : '';
   $('modal-site').hidden = false;
   $('input-site-url').focus();
 }
@@ -375,7 +480,14 @@ function saveSiteModal() {
       title = url;
     }
   }
-  project.sites.push({ id: uid(), title, url });
+  const existing = editingSiteId ? project.sites.find((s) => s.id === editingSiteId) : null;
+  if (existing) {
+    existing.title = title;
+    existing.url = url;
+  } else {
+    project.sites.push({ id: uid(), title, url });
+  }
+  editingSiteId = null;
   saveProjects();
   $('modal-site').hidden = true;
   renderProject();
@@ -446,6 +558,8 @@ function applyTexts() {
   $('btn-delete-project').title = L.deleteProjectConfirm.split('{')[0].trim();
   $('label-project-name').textContent = L.projectName;
   $('label-project-icon').textContent = L.projectIcon;
+  $('label-project-logo').textContent = L.logoLabel;
+  $('btn-upload-logo').textContent = L.uploadLogo;
   $('btn-project-cancel').textContent = L.cancel;
   $('btn-project-save').textContent = L.save;
   $('label-site-name').textContent = L.siteName;
@@ -460,6 +574,7 @@ function applyTexts() {
 async function init() {
   const state = await window.api.getState();
   projects = state.projects || [];
+  logos = state.logos || [];
   settings = state.settings || settings;
   const langPref =
     settings.language || ((state.locale || '').toLowerCase().startsWith('de') ? 'de' : 'en');
@@ -550,6 +665,19 @@ async function init() {
   $('btn-add-site').addEventListener('click', openSiteModal);
 
   // Modals
+  $('btn-toggle-emojis').addEventListener('click', () => {
+    emojiExpanded = !emojiExpanded;
+    renderEmojiGrid();
+  });
+  $('btn-upload-logo').addEventListener('click', async () => {
+    const result = await window.api.pickLogo();
+    if (result && result.picked) {
+      logos = result.logos || logos;
+      chosenIcon = result.picked;
+      renderEmojiGrid();
+      renderLogoGrid();
+    }
+  });
   $('btn-project-cancel').addEventListener('click', () => ($('modal-project').hidden = true));
   $('btn-project-save').addEventListener('click', saveProjectModal);
   $('input-project-name').addEventListener('keydown', (e) => {

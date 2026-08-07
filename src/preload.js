@@ -9,6 +9,7 @@ contextBridge.exposeInMainWorld('api', {
   setAutostart: (value) => ipcRenderer.invoke('autostart:set', value),
   setLanguage: (value) => ipcRenderer.invoke('lang:set', value),
   setScheme: (value) => ipcRenderer.invoke('scheme:set', value),
+  pickLogo: () => ipcRenderer.invoke('logo:pick'),
   openExternal: (url) => ipcRenderer.invoke('link:external', url),
   hideWindow: () => ipcRenderer.invoke('window:hide'),
   quit: () => ipcRenderer.invoke('app:quit')

@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, shell, screen, Tray, Menu, nativeImage } = require('electron');
+const { app, BrowserWindow, ipcMain, shell, screen, Tray, Menu, nativeImage, dialog } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const { exec, execFile, spawn } = require('child_process');
@@ -14,6 +14,7 @@ let saveTimer = null;
 
 const DEFAULT_DATA = {
   projects: [],
+  logos: [],
   window: null,
   settings: {
     alwaysOnTop: false,
@@ -181,6 +182,7 @@ app.on('window-all-closed', () => {});
 
 ipcMain.handle('state:get', () => ({
   projects: data.projects,
+  logos: data.logos,
   settings: data.settings,
   locale: app.getLocale(),
   platform: process.platform,
@@ -357,6 +359,30 @@ ipcMain.handle('lang:set', (event, value) => {
   persist();
   updateTrayMenu();
   return data.settings.language;
+});
+
+ipcMain.handle('logo:pick', async () => {
+  const result = await dialog.showOpenDialog(win, {
+    properties: ['openFile'],
+    filters: [{ name: 'Images', extensions: ['png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp'] }]
+  });
+  if (result.canceled || !result.filePaths.length) return null;
+
+  const img = nativeImage.createFromPath(result.filePaths[0]);
+  if (img.isEmpty()) return null;
+
+  const { width, height } = img.getSize();
+  const factor = Math.min(1, 128 / Math.max(width, height));
+  const resized =
+    factor < 1
+      ? img.resize({ width: Math.round(width * factor), height: Math.round(height * factor), quality: 'best' })
+      : img;
+  const dataUrl = resized.toDataURL();
+
+  if (!Array.isArray(data.logos)) data.logos = [];
+  if (!data.logos.includes(dataUrl)) data.logos.push(dataUrl);
+  persist();
+  return { logos: data.logos, picked: dataUrl };
 });
 
 ipcMain.handle('window:hide', () => {
