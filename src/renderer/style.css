@@ -5,6 +5,10 @@
   user-select: none;
 }
 
+[hidden] {
+  display: none !important;
+}
+
 :root {
   --text: rgba(255, 255, 255, 0.92);
   --text-dim: rgba(255, 255, 255, 0.55);
