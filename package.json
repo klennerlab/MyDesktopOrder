@@ -1,0 +1,68 @@
+{
+  "name": "my-desktop-order",
+  "productName": "My Desktop Order",
+  "version": "1.0.0",
+  "description": "Projekt-Kästchen für deinen Desktop: Webseiten in Projekten organisieren und gesammelt öffnen. / A project box for your desktop: organize websites into projects and open them together.",
+  "main": "src/main.js",
+  "license": "MIT",
+  "author": "Melanie Klenner",
+  "repository": "github:klennerlab/MyDesktopOrder",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder"
+  },
+  "build": {
+    "appId": "com.klennerlab.mydesktoporder",
+    "productName": "My Desktop Order",
+    "directories": {
+      "buildResources": "build",
+      "output": "dist"
+    },
+    "files": [
+      "src/**/*"
+    ],
+    "mac": {
+      "category": "public.app-category.productivity",
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "arm64",
+            "x64"
+          ]
+        },
+        {
+          "target": "zip",
+          "arch": [
+            "arm64",
+            "x64"
+          ]
+        }
+      ]
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false
+    }
+  },
+  "devDependencies": {
+    "electron": "^43.3.0",
+    "electron-builder": "^26.15.3"
+  }
+}

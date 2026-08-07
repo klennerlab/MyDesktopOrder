@@ -1,0 +1,101 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; img-src 'self' https://www.google.com data:; style-src 'self'" />
+  <title>My Desktop Order</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="widget" id="widget">
+
+    <header class="drag">
+      <div class="header-title" id="header-title">Meine Projekte</div>
+      <div class="header-buttons no-drag">
+        <button id="btn-pin" class="icon-btn" title=""></button>
+        <button id="btn-menu" class="icon-btn" title="">⋯</button>
+        <button id="btn-close" class="icon-btn" title="">✕</button>
+      </div>
+    </header>
+
+    <!-- Home: project grid -->
+    <main id="view-home">
+      <div id="project-grid" class="project-grid"></div>
+      <div id="empty-state" class="empty-state" hidden>
+        <div class="empty-icon">🗂️</div>
+        <p id="empty-text"></p>
+      </div>
+    </main>
+
+    <!-- Project detail -->
+    <main id="view-project" hidden>
+      <div class="project-head no-drag">
+        <button id="btn-back" class="icon-btn" title=""></button>
+        <div class="project-head-title">
+          <span id="project-icon"></span>
+          <span id="project-name"></span>
+        </div>
+        <button id="btn-edit-project" class="icon-btn" title="">✎</button>
+        <button id="btn-delete-project" class="icon-btn danger" title="">🗑</button>
+      </div>
+
+      <div id="site-list" class="site-list"></div>
+      <div id="site-empty" class="empty-state" hidden>
+        <div class="empty-icon">🔗</div>
+        <p id="site-empty-text"></p>
+      </div>
+
+      <div class="project-actions">
+        <button id="btn-open-all" class="primary"></button>
+        <button id="btn-open-selected" class="secondary" disabled></button>
+        <button id="btn-add-site" class="ghost"></button>
+      </div>
+    </main>
+
+    <footer id="footer-home">
+      <button id="btn-new-project" class="primary wide"></button>
+    </footer>
+
+    <!-- Modal: create / edit project -->
+    <div id="modal-project" class="overlay" hidden>
+      <div class="modal">
+        <h3 id="modal-project-title"></h3>
+        <label id="label-project-name"></label>
+        <input id="input-project-name" type="text" maxlength="40" />
+        <label id="label-project-icon"></label>
+        <div id="emoji-grid" class="emoji-grid"></div>
+        <div class="modal-buttons">
+          <button id="btn-project-cancel" class="ghost"></button>
+          <button id="btn-project-save" class="primary"></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal: add site -->
+    <div id="modal-site" class="overlay" hidden>
+      <div class="modal">
+        <h3 id="modal-site-title"></h3>
+        <label id="label-site-name"></label>
+        <input id="input-site-name" type="text" maxlength="60" />
+        <label id="label-site-url"></label>
+        <input id="input-site-url" type="text" placeholder="https://…" />
+        <div class="modal-buttons">
+          <button id="btn-site-cancel" class="ghost"></button>
+          <button id="btn-site-save" class="primary"></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dropdown menu -->
+    <div id="menu" class="menu no-drag" hidden>
+      <button id="menu-language" class="menu-item"></button>
+      <button id="menu-autostart" class="menu-item"></button>
+      <button id="menu-github" class="menu-item"></button>
+      <button id="menu-quit" class="menu-item danger"></button>
+    </div>
+
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>
