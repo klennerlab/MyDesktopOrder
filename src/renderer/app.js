@@ -57,8 +57,9 @@ const I18N = {
     removeSiteConfirm: '„{name}“ aus dem Projekt entfernen?',
     sites: 'Seiten',
     site: 'Seite',
-    pin: 'Immer im Vordergrund',
-    lock: 'Sticker-Modus: Position fixieren',
+    lock: 'Position fixieren',
+    ontopOn: '✓ Immer im Vordergrund',
+    ontopOff: 'Immer im Vordergrund',
     schemeMenu: 'Farbschema wählen',
     schemeTitle: 'Farbschema',
     back: 'Zurück',
@@ -93,8 +94,9 @@ const I18N = {
     removeSiteConfirm: 'Remove "{name}" from this project?',
     sites: 'sites',
     site: 'site',
-    pin: 'Always on top',
-    lock: 'Sticker mode: lock position',
+    lock: 'Lock position',
+    ontopOn: '✓ Always on top',
+    ontopOff: 'Always on top',
     schemeMenu: 'Choose color scheme',
     schemeTitle: 'Color scheme',
     back: 'Back',
@@ -410,6 +412,7 @@ function renderSchemeModal() {
 function renderMenu() {
   $('menu-language').textContent = L.language;
   $('menu-scheme').textContent = L.schemeMenu;
+  $('menu-ontop').textContent = settings.alwaysOnTop ? L.ontopOn : L.ontopOff;
   $('menu-autostart').textContent = settings.openAtLogin ? L.autostartOn : L.autostartOff;
   $('menu-github').textContent = L.github;
   $('menu-quit').textContent = L.quit;
@@ -432,7 +435,6 @@ function applyTexts() {
   $('btn-new-project').textContent = L.newProject;
   $('empty-text').textContent = L.emptyProjects;
   $('site-empty-text').textContent = L.emptySites;
-  $('btn-pin').title = L.pin;
   $('btn-lock').title = L.lock;
   $('btn-menu').title = L.menu;
   $('btn-close').title = L.close;
@@ -448,7 +450,6 @@ function applyTexts() {
   $('label-site-url').textContent = L.siteUrl;
   $('btn-site-cancel').textContent = L.cancel;
   $('btn-site-save').textContent = L.save;
-  $('btn-pin').textContent = '📌';
   renderMenu();
 }
 
@@ -467,7 +468,6 @@ async function init() {
   );
 
   applyTexts();
-  $('btn-pin').classList.toggle('active', !!settings.alwaysOnTop);
   applyScheme(settings.scheme || 'steel');
   $('btn-lock').classList.toggle('active', !!settings.locked);
   document.body.classList.toggle('locked', !!settings.locked);
@@ -475,10 +475,6 @@ async function init() {
 
   // Header buttons
   $('btn-close').addEventListener('click', () => window.api.quit());
-  $('btn-pin').addEventListener('click', async () => {
-    settings.alwaysOnTop = await window.api.setPin(!settings.alwaysOnTop);
-    $('btn-pin').classList.toggle('active', !!settings.alwaysOnTop);
-  });
   $('btn-lock').addEventListener('click', async () => {
     settings.locked = await window.api.setLock(!settings.locked);
     $('btn-lock').classList.toggle('active', !!settings.locked);
@@ -499,6 +495,10 @@ async function init() {
     L = settings.language === 'de' ? I18N.de : I18N.en;
     refreshUi();
     $('menu').hidden = true;
+  });
+  $('menu-ontop').addEventListener('click', async () => {
+    settings.alwaysOnTop = await window.api.setPin(!settings.alwaysOnTop);
+    renderMenu();
   });
   $('menu-scheme').addEventListener('click', () => {
     renderSchemeModal();
