@@ -34,6 +34,7 @@ const I18N = {
     site: 'Seite',
     pin: 'Immer im Vordergrund',
     lock: 'Sticker-Modus: Position fixieren',
+    lockedChip: '🧷 Fixiert',
     back: 'Zurück',
     close: 'Schließen',
     menu: 'Menü',
@@ -68,6 +69,7 @@ const I18N = {
     site: 'site',
     pin: 'Always on top',
     lock: 'Sticker mode: lock position',
+    lockedChip: '🧷 Pinned',
     back: 'Back',
     close: 'Close',
     menu: 'Menu',
@@ -376,6 +378,7 @@ function applyTexts() {
   $('site-empty-text').textContent = L.emptySites;
   $('btn-pin').title = L.pin;
   $('btn-lock').title = L.lock;
+  $('lock-chip').textContent = L.lockedChip;
   $('btn-menu').title = L.menu;
   $('btn-close').title = L.close;
   $('btn-back').textContent = '‹';
@@ -412,6 +415,7 @@ async function init() {
   $('btn-pin').classList.toggle('active', !!settings.alwaysOnTop);
   $('btn-lock').classList.toggle('active', !!settings.locked);
   document.body.classList.toggle('locked', !!settings.locked);
+  $('lock-chip').hidden = !settings.locked;
   renderHome();
 
   // Header buttons
@@ -424,6 +428,7 @@ async function init() {
     settings.locked = await window.api.setLock(!settings.locked);
     $('btn-lock').classList.toggle('active', !!settings.locked);
     document.body.classList.toggle('locked', !!settings.locked);
+    $('lock-chip').hidden = !settings.locked;
   });
   $('btn-menu').addEventListener('click', (event) => {
     event.stopPropagation();
