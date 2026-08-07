@@ -459,13 +459,13 @@ async function init() {
   });
   $('btn-open-all').addEventListener('click', () => {
     const project = currentProject();
-    if (project) window.api.openUrls(project.sites.map((s) => s.url));
+    if (project) window.api.openUrls(project.sites.map((s) => s.url), { newWindow: true });
   });
   $('btn-open-selected').addEventListener('click', () => {
     const project = currentProject();
     if (!project) return;
     const urls = project.sites.filter((s) => selectedSites.has(s.id)).map((s) => s.url);
-    if (urls.length) window.api.openUrls(urls);
+    if (urls.length) window.api.openUrls(urls, { newWindow: true });
   });
   $('btn-add-site').addEventListener('click', openSiteModal);
 
