@@ -69,6 +69,7 @@ const I18N = {
     autostartOff: 'Beim Anmelden starten',
     github: 'Auf GitHub ansehen',
     language: 'Language: English',
+    hideWindow: 'Schließen (in Menüleiste)',
     quit: 'Beenden',
     invalidUrl: 'Bitte gib eine gültige Adresse ein, z. B. https://www.notion.com'
   },
@@ -106,6 +107,7 @@ const I18N = {
     autostartOff: 'Start at login',
     github: 'View on GitHub',
     language: 'Sprache: Deutsch',
+    hideWindow: 'Close (keep in menu bar)',
     quit: 'Quit',
     invalidUrl: 'Please enter a valid address, e.g. https://www.notion.com'
   }
@@ -414,6 +416,7 @@ function renderMenu() {
   $('menu-scheme').textContent = L.schemeMenu;
   $('menu-ontop').textContent = settings.alwaysOnTop ? L.ontopOn : L.ontopOff;
   $('menu-autostart').textContent = settings.openAtLogin ? L.autostartOn : L.autostartOff;
+  $('menu-hide').textContent = L.hideWindow;
   $('menu-github').textContent = L.github;
   $('menu-quit').textContent = L.quit;
 }
@@ -437,7 +440,6 @@ function applyTexts() {
   $('site-empty-text').textContent = L.emptySites;
   $('btn-lock').title = L.lock;
   $('btn-menu').title = L.menu;
-  $('btn-close').title = L.close;
   $('btn-back').textContent = '‹';
   $('btn-back').title = L.back;
   $('btn-edit-project').title = L.editProject;
@@ -474,7 +476,6 @@ async function init() {
   renderHome();
 
   // Header buttons
-  $('btn-close').addEventListener('click', () => window.api.quit());
   $('btn-lock').addEventListener('click', async () => {
     settings.locked = await window.api.setLock(!settings.locked);
     $('btn-lock').classList.toggle('active', !!settings.locked);
@@ -513,6 +514,10 @@ async function init() {
   $('menu-github').addEventListener('click', () => {
     window.api.openExternal(GITHUB_URL);
     $('menu').hidden = true;
+  });
+  $('menu-hide').addEventListener('click', () => {
+    $('menu').hidden = true;
+    window.api.hideWindow();
   });
   $('menu-quit').addEventListener('click', () => window.api.quit());
 

@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, shell, screen } = require('electron');
+const { app, BrowserWindow, ipcMain, shell, screen, Tray, Menu, nativeImage } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const { exec, execFile, spawn } = require('child_process');
@@ -7,6 +7,7 @@ const isMac = process.platform === 'darwin';
 const isWin = process.platform === 'win32';
 
 let win = null;
+let tray = null;
 let data = null;
 let dataPath = null;
 let saveTimer = null;
@@ -111,6 +112,46 @@ function createWindow() {
   });
 }
 
+function showWindow() {
+  if (!win || win.isDestroyed()) {
+    createWindow();
+  } else {
+    if (win.isMinimized()) win.restore();
+    win.show();
+    win.focus();
+  }
+}
+
+function trayLang() {
+  const pref = data.settings.language || (app.getLocale().toLowerCase().startsWith('de') ? 'de' : 'en');
+  return pref === 'de'
+    ? { show: 'Meine Projekte anzeigen', quit: 'Beenden' }
+    : { show: 'Show My Projects', quit: 'Quit' };
+}
+
+function updateTrayMenu() {
+  if (!tray) return;
+  const t = trayLang();
+  tray.setContextMenu(
+    Menu.buildFromTemplate([
+      { label: t.show, click: showWindow },
+      { type: 'separator' },
+      { label: t.quit, click: () => app.quit() }
+    ])
+  );
+}
+
+function createTray() {
+  const iconPath = isMac
+    ? path.join(__dirname, 'assets', 'trayTemplate.png')
+    : path.join(__dirname, 'assets', 'tray-win.png');
+  const icon = nativeImage.createFromPath(iconPath);
+  if (isMac) icon.setTemplateImage(true);
+  tray = new Tray(icon);
+  tray.setToolTip('My Desktop Order');
+  updateTrayMenu();
+}
+
 const gotLock = app.requestSingleInstanceLock();
 if (!gotLock) {
   app.quit();
@@ -127,16 +168,14 @@ if (!gotLock) {
     dataPath = path.join(app.getPath('userData'), 'data.json');
     data = loadData();
     createWindow();
+    createTray();
 
-    app.on('activate', () => {
-      if (BrowserWindow.getAllWindows().length === 0) createWindow();
-    });
+    app.on('activate', showWindow);
   });
 }
 
-app.on('window-all-closed', () => {
-  app.quit();
-});
+// The app lives in the tray/menu bar — closing the window does not quit it.
+app.on('window-all-closed', () => {});
 
 // ---- IPC ----
 
@@ -316,7 +355,12 @@ ipcMain.handle('scheme:set', (event, value) => {
 ipcMain.handle('lang:set', (event, value) => {
   data.settings.language = value === 'de' || value === 'en' ? value : null;
   persist();
+  updateTrayMenu();
   return data.settings.language;
+});
+
+ipcMain.handle('window:hide', () => {
+  if (win) win.hide();
 });
 
 ipcMain.handle('link:external', (event, url) => {
