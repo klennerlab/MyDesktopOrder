@@ -27,7 +27,7 @@ const I18N = {
     openSelected: 'Ausgewählte öffnen ({n})',
     addSite: '＋ Seite hinzufügen',
     addSiteTitle: 'Seite hinzufügen',
-    siteName: 'Titel',
+    siteName: 'Titel (optional)',
     siteUrl: 'Adresse (URL)',
     removeSiteConfirm: '„{name}“ aus dem Projekt entfernen?',
     sites: 'Seiten',
@@ -60,7 +60,7 @@ const I18N = {
     openSelected: 'Open selected ({n})',
     addSite: '＋ Add site',
     addSiteTitle: 'Add site',
-    siteName: 'Title',
+    siteName: 'Title (optional)',
     siteUrl: 'Address (URL)',
     removeSiteConfirm: 'Remove "{name}" from this project?',
     sites: 'sites',
@@ -319,7 +319,7 @@ function openSiteModal() {
   $('input-site-name').value = '';
   $('input-site-url').value = '';
   $('modal-site').hidden = false;
-  $('input-site-name').focus();
+  $('input-site-url').focus();
 }
 
 function saveSiteModal() {
