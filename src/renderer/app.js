@@ -276,6 +276,35 @@ function renderHome() {
       tile.append(name, count);
     }
     tile.addEventListener('click', () => openProject(project.id));
+
+    // Drag & drop reordering
+    tile.draggable = true;
+    tile.addEventListener('dragstart', (e) => {
+      e.dataTransfer.setData('text/plain', project.id);
+      e.dataTransfer.effectAllowed = 'move';
+      tile.classList.add('dragging');
+    });
+    tile.addEventListener('dragend', () => tile.classList.remove('dragging'));
+    tile.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      tile.classList.add('drag-over');
+    });
+    tile.addEventListener('dragleave', () => tile.classList.remove('drag-over'));
+    tile.addEventListener('drop', (e) => {
+      e.preventDefault();
+      tile.classList.remove('drag-over');
+      const draggedId = e.dataTransfer.getData('text/plain');
+      if (!draggedId || draggedId === project.id) return;
+      const fromIdx = projects.findIndex((p) => p.id === draggedId);
+      const toIdx = projects.findIndex((p) => p.id === project.id);
+      if (fromIdx < 0 || toIdx < 0) return;
+      const [moved] = projects.splice(fromIdx, 1);
+      projects.splice(toIdx, 0, moved);
+      saveProjects();
+      renderHome();
+    });
+
     grid.appendChild(tile);
   }
 }

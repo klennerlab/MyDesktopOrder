@@ -202,6 +202,14 @@ main::-webkit-scrollbar-thumb {
   transform: translateY(-1px);
 }
 
+.project-tile.dragging {
+  opacity: 0.4;
+}
+
+.project-tile.drag-over {
+  border-color: var(--accent);
+}
+
 .project-tile .tile-icon {
   font-size: 28px;
   line-height: 1.2;
