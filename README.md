@@ -2,6 +2,8 @@
 
 **Deutsch** | [English below ⬇️](#english)
 
+**⬇️ Download-Seite: https://klennerlab.github.io/MyDesktopOrder/**
+
 Ein kleines Projekt-Kästchen für deinen Desktop – für **macOS** und **Windows**.
 
 Organisiere deine Webseiten in Projekten (z. B. „Poloflow“) und öffne sie mit einem Klick – alle auf einmal oder nur die, die du gerade brauchst. Nie wieder 20 offene Tabs, die du nicht schließen willst!
