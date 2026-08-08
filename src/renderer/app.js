@@ -87,8 +87,9 @@ const I18N = {
     dataMenu: 'Import / Export',
     dataTitle: 'Import / Export',
     importBookmarks: '🔖 Browser-Lesezeichen importieren',
-    importFile: '📥 Aus Datei importieren',
-    exportFile: '📤 In Datei exportieren',
+    importFile: '📥 Sicherung importieren (.json)',
+    exportFile: '📤 Sicherung exportieren (.json)',
+    exportHtml: '📄 Liste exportieren (.html, anklickbar)',
     exportDone: '✓ Exportiert!',
     exportFailed: 'Export fehlgeschlagen.',
     importDone: '✓ {n} Projekte importiert',
@@ -156,8 +157,9 @@ const I18N = {
     dataMenu: 'Import / Export',
     dataTitle: 'Import / Export',
     importBookmarks: '🔖 Import browser bookmarks',
-    importFile: '📥 Import from file',
-    exportFile: '📤 Export to file',
+    importFile: '📥 Import backup (.json)',
+    exportFile: '📤 Export backup (.json)',
+    exportHtml: '📄 Export list (.html, clickable)',
     exportDone: '✓ Exported!',
     exportFailed: 'Export failed.',
     importDone: '✓ Imported {n} projects',
@@ -761,6 +763,7 @@ function openDataModal() {
   $('btn-import-bookmarks').textContent = L.importBookmarks;
   $('btn-import-file').textContent = L.importFile;
   $('btn-export-file').textContent = L.exportFile;
+  $('btn-export-html').textContent = L.exportHtml;
   $('data-status').hidden = true;
   $('modal-data').hidden = false;
 }
@@ -957,6 +960,10 @@ async function init() {
   $('btn-import-bookmarks').addEventListener('click', openBookmarksModal);
   $('btn-export-file').addEventListener('click', async () => {
     const ok = await window.api.exportFile();
+    showDataStatus(ok ? L.exportDone : L.exportFailed);
+  });
+  $('btn-export-html').addEventListener('click', async () => {
+    const ok = await window.api.exportHtml();
     showDataStatus(ok ? L.exportDone : L.exportFailed);
   });
   $('btn-import-file').addEventListener('click', async () => {

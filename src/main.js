@@ -553,6 +553,75 @@ ipcMain.handle('file:export', async () => {
   }
 });
 
+function escapeHtml(text) {
+  return String(text)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+ipcMain.handle('file:exportHtml', async () => {
+  const de = (data.settings.language || app.getLocale().toLowerCase()).startsWith('de');
+  const t = de
+    ? { title: 'Meine Projekte', sites: 'Seiten', site: 'Seite', file: 'meine-projekte.html', footer: 'Erstellt mit My Desktop Order' }
+    : { title: 'My Projects', sites: 'sites', site: 'site', file: 'my-projects.html', footer: 'Created with My Desktop Order' };
+
+  const result = await dialog.showSaveDialog(win, {
+    defaultPath: t.file,
+    filters: [{ name: 'HTML', extensions: ['html'] }]
+  });
+  if (result.canceled || !result.filePath) return false;
+
+  const sections = data.projects
+    .map((project) => {
+      const icon = typeof project.icon === 'string' && !project.icon.startsWith('data:') ? project.icon + ' ' : '';
+      const note = project.note ? `<p class="note">${escapeHtml(project.note)}</p>` : '';
+      const rows = project.sites
+        .map((site) => {
+          const siteNote = site.note ? ` <span class="note">— ${escapeHtml(site.note)}</span>` : '';
+          return `<li><a href="${escapeHtml(site.url)}">${escapeHtml(site.title || site.url)}</a> <span class="url">${escapeHtml(site.url)}</span>${siteNote}</li>`;
+        })
+        .join('\n');
+      const count = `${project.sites.length} ${project.sites.length === 1 ? t.site : t.sites}`;
+      return `<section><h2>${icon}${escapeHtml(project.name)} <span class="count">(${count})</span></h2>${note}<ul>${rows}</ul></section>`;
+    })
+    .join('\n');
+
+  const html = `<!doctype html>
+<html lang="${de ? 'de' : 'en'}">
+<head>
+<meta charset="utf-8">
+<title>${t.title}</title>
+<style>
+  body { font-family: -apple-system, "Segoe UI", system-ui, sans-serif; max-width: 760px; margin: 40px auto; padding: 0 20px; color: #1a2230; line-height: 1.6; }
+  h1 { border-bottom: 2px solid #5e88ab; padding-bottom: 8px; }
+  h2 { margin-top: 28px; margin-bottom: 4px; }
+  .count { color: #7d8794; font-weight: 400; font-size: 0.8em; }
+  ul { margin: 6px 0 0 0; padding-left: 22px; }
+  li { margin: 4px 0; }
+  a { color: #2f6ca8; }
+  .url { color: #7d8794; font-size: 0.85em; }
+  .note { color: #55606e; font-style: italic; font-size: 0.9em; margin: 2px 0; }
+  footer { margin-top: 40px; color: #7d8794; font-size: 0.85em; border-top: 1px solid #dde3ea; padding-top: 10px; }
+</style>
+</head>
+<body>
+<h1>${t.title}</h1>
+${sections}
+<footer>${t.footer} · https://klennerlab.github.io/MyDesktopOrder/</footer>
+</body>
+</html>`;
+
+  try {
+    fs.writeFileSync(result.filePath, html);
+    shell.openPath(result.filePath);
+    return true;
+  } catch {
+    return false;
+  }
+});
+
 ipcMain.handle('file:import', async () => {
   const result = await dialog.showOpenDialog(win, {
     properties: ['openFile'],

@@ -13,6 +13,7 @@ contextBridge.exposeInMainWorld('api', {
   getFavicon: (hostname) => ipcRenderer.invoke('favicon:get', hostname),
   readBookmarks: () => ipcRenderer.invoke('bookmarks:read'),
   exportFile: () => ipcRenderer.invoke('file:export'),
+  exportHtml: () => ipcRenderer.invoke('file:exportHtml'),
   importFile: () => ipcRenderer.invoke('file:import'),
   openExternal: (url) => ipcRenderer.invoke('link:external', url),
   hideWindow: () => ipcRenderer.invoke('window:hide'),
