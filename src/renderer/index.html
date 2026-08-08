@@ -113,6 +113,31 @@
       </div>
     </div>
 
+    <!-- Modal: import / export -->
+    <div id="modal-data" class="overlay" hidden>
+      <div class="modal">
+        <h3 id="modal-data-title"></h3>
+        <div class="choice-list">
+          <button id="btn-import-bookmarks" class="choice-option"></button>
+          <button id="btn-import-file" class="choice-option"></button>
+          <button id="btn-export-file" class="choice-option"></button>
+        </div>
+        <p id="data-status" class="data-status" hidden></p>
+      </div>
+    </div>
+
+    <!-- Modal: pick bookmark folders to import -->
+    <div id="modal-bookmarks" class="overlay" hidden>
+      <div class="modal">
+        <h3 id="modal-bookmarks-title"></h3>
+        <div id="bookmark-list" class="choice-list"></div>
+        <div class="modal-buttons">
+          <button id="btn-bookmarks-cancel" class="ghost"></button>
+          <button id="btn-bookmarks-import" class="primary"></button>
+        </div>
+      </div>
+    </div>
+
     <!-- Modal: language picker -->
     <div id="modal-language" class="overlay" hidden>
       <div class="modal">
@@ -135,6 +160,7 @@
       <button id="menu-scheme" class="menu-item"></button>
       <button id="menu-ontop" class="menu-item"></button>
       <button id="menu-autostart" class="menu-item"></button>
+      <button id="menu-data" class="menu-item"></button>
       <button id="menu-github" class="menu-item"></button>
       <button id="menu-hide" class="menu-item"></button>
       <button id="menu-quit" class="menu-item danger"></button>

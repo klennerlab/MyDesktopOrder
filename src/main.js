@@ -461,6 +461,144 @@ ipcMain.handle('logo:pick', async () => {
   return { logos: data.logos, picked: dataUrl };
 });
 
+// ---- Bookmarks import (Chrome / Edge / Brave — read from their local files) ----
+
+function isValidHttpUrl(url) {
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+  } catch {
+    return false;
+  }
+}
+
+function chromiumBookmarkFiles() {
+  const home = app.getPath('home');
+  const bases = isMac
+    ? {
+        Chrome: path.join(home, 'Library/Application Support/Google/Chrome'),
+        Edge: path.join(home, 'Library/Application Support/Microsoft Edge'),
+        Brave: path.join(home, 'Library/Application Support/BraveSoftware/Brave-Browser')
+      }
+    : isWin
+      ? {
+          Chrome: path.join(process.env.LOCALAPPDATA || '', 'Google/Chrome/User Data'),
+          Edge: path.join(process.env.LOCALAPPDATA || '', 'Microsoft/Edge/User Data'),
+          Brave: path.join(process.env.LOCALAPPDATA || '', 'BraveSoftware/Brave-Browser/User Data')
+        }
+      : {};
+  const files = [];
+  for (const [browser, base] of Object.entries(bases)) {
+    let entries = [];
+    try {
+      entries = fs.readdirSync(base).filter((e) => e === 'Default' || /^Profile \d+$/.test(e));
+    } catch {
+      continue;
+    }
+    for (const profile of entries) {
+      const file = path.join(base, profile, 'Bookmarks');
+      if (fs.existsSync(file)) files.push({ browser, profile, file });
+    }
+  }
+  return files;
+}
+
+function collectBookmarkFolders(node, folders) {
+  if (!node || node.type !== 'folder' || !Array.isArray(node.children)) return;
+  const sites = node.children
+    .filter((c) => c.type === 'url' && isValidHttpUrl(c.url))
+    .map((c) => ({ title: c.name || '', url: c.url }));
+  if (sites.length) folders.push({ name: node.name || 'Bookmarks', sites });
+  for (const child of node.children) collectBookmarkFolders(child, folders);
+}
+
+ipcMain.handle('bookmarks:read', () => {
+  const files = chromiumBookmarkFiles();
+  const result = [];
+  const multipleSources = files.length > 1;
+  for (const { browser, profile, file } of files) {
+    try {
+      const json = JSON.parse(fs.readFileSync(file, 'utf8'));
+      const folders = [];
+      for (const root of Object.values(json.roots || {})) collectBookmarkFolders(root, folders);
+      const label = multipleSources ? `${browser}${profile === 'Default' ? '' : ' · ' + profile}` : '';
+      for (const folder of folders) result.push({ ...folder, label });
+    } catch {
+      // unreadable profile — skip
+    }
+  }
+  return result;
+});
+
+// ---- Export / import projects as a local file ----
+
+ipcMain.handle('file:export', async () => {
+  const result = await dialog.showSaveDialog(win, {
+    defaultPath: 'my-desktop-order-projects.json',
+    filters: [{ name: 'JSON', extensions: ['json'] }]
+  });
+  if (result.canceled || !result.filePath) return false;
+  try {
+    const payload = {
+      app: 'my-desktop-order',
+      kind: 'export',
+      version: app.getVersion(),
+      projects: data.projects,
+      logos: data.logos
+    };
+    fs.writeFileSync(result.filePath, JSON.stringify(payload, null, 2));
+    return true;
+  } catch {
+    return false;
+  }
+});
+
+ipcMain.handle('file:import', async () => {
+  const result = await dialog.showOpenDialog(win, {
+    properties: ['openFile'],
+    filters: [{ name: 'JSON', extensions: ['json'] }]
+  });
+  if (result.canceled || !result.filePaths.length) return null;
+  try {
+    const raw = JSON.parse(fs.readFileSync(result.filePaths[0], 'utf8'));
+    if (raw.app !== 'my-desktop-order' || !Array.isArray(raw.projects)) return { error: 'format' };
+
+    const newId = () => Math.random().toString(36).slice(2) + Date.now().toString(36);
+    let imported = 0;
+    for (const project of raw.projects) {
+      if (!project || typeof project.name !== 'string' || !project.name.trim()) continue;
+      const sites = (Array.isArray(project.sites) ? project.sites : [])
+        .filter((s) => s && isValidHttpUrl(s.url))
+        .map((s) => ({
+          id: newId(),
+          title: typeof s.title === 'string' ? s.title.slice(0, 60) : '',
+          url: s.url,
+          ...(typeof s.note === 'string' && s.note ? { note: s.note.slice(0, 500) } : {})
+        }));
+      data.projects.push({
+        id: newId(),
+        name: project.name.slice(0, 40),
+        icon: typeof project.icon === 'string' ? project.icon : null,
+        ...(typeof project.note === 'string' && project.note ? { note: project.note.slice(0, 1000) } : {}),
+        sites
+      });
+      imported += 1;
+    }
+    if (Array.isArray(raw.logos)) {
+      if (!Array.isArray(data.logos)) data.logos = [];
+      for (const logo of raw.logos) {
+        if (typeof logo === 'string' && logo.startsWith('data:image/') && !data.logos.includes(logo)) {
+          data.logos.push(logo);
+        }
+      }
+    }
+    persist();
+    return { imported, projects: data.projects, logos: data.logos };
+  } catch {
+    return { error: 'format' };
+  }
+});
+
 ipcMain.handle('window:hide', () => {
   if (win) win.hide();
 });

@@ -11,6 +11,9 @@ contextBridge.exposeInMainWorld('api', {
   setScheme: (value) => ipcRenderer.invoke('scheme:set', value),
   pickLogo: () => ipcRenderer.invoke('logo:pick'),
   getFavicon: (hostname) => ipcRenderer.invoke('favicon:get', hostname),
+  readBookmarks: () => ipcRenderer.invoke('bookmarks:read'),
+  exportFile: () => ipcRenderer.invoke('file:export'),
+  importFile: () => ipcRenderer.invoke('file:import'),
   openExternal: (url) => ipcRenderer.invoke('link:external', url),
   hideWindow: () => ipcRenderer.invoke('window:hide'),
   quit: () => ipcRenderer.invoke('app:quit')

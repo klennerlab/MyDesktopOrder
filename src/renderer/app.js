@@ -82,6 +82,18 @@ const I18N = {
     layerShortTop: 'Vordergrund',
     layerShortNormal: 'Normal',
     languageTitle: 'Sprache',
+    dataMenu: 'Import / Export',
+    dataTitle: 'Import / Export',
+    importBookmarks: '🔖 Browser-Lesezeichen importieren',
+    importFile: '📥 Aus Datei importieren',
+    exportFile: '📤 In Datei exportieren',
+    exportDone: '✓ Exportiert!',
+    exportFailed: 'Export fehlgeschlagen.',
+    importDone: '✓ {n} Projekte importiert',
+    importFailed: 'Datei konnte nicht gelesen werden (kein gültiger Export).',
+    noBookmarks: 'Keine Browser-Lesezeichen gefunden (unterstützt: Chrome, Edge, Brave).',
+    bookmarksTitle: 'Lesezeichen-Ordner wählen',
+    importCount: 'Importieren ({n})',
     schemeMenu: 'Farbschema wählen',
     schemeTitle: 'Farbschema',
     back: 'Zurück',
@@ -133,6 +145,18 @@ const I18N = {
     layerShortTop: 'On top',
     layerShortNormal: 'Normal',
     languageTitle: 'Language',
+    dataMenu: 'Import / Export',
+    dataTitle: 'Import / Export',
+    importBookmarks: '🔖 Import browser bookmarks',
+    importFile: '📥 Import from file',
+    exportFile: '📤 Export to file',
+    exportDone: '✓ Exported!',
+    exportFailed: 'Export failed.',
+    importDone: '✓ Imported {n} projects',
+    importFailed: 'Could not read file (not a valid export).',
+    noBookmarks: 'No browser bookmarks found (supported: Chrome, Edge, Brave).',
+    bookmarksTitle: 'Choose bookmark folders',
+    importCount: 'Import ({n})',
     schemeMenu: 'Choose color scheme',
     schemeTitle: 'Color scheme',
     back: 'Back',
@@ -678,12 +702,100 @@ function openLayerModal() {
   $('modal-layer').hidden = false;
 }
 
+// ---- Import / Export ----
+
+function openDataModal() {
+  $('modal-data-title').textContent = L.dataTitle;
+  $('btn-import-bookmarks').textContent = L.importBookmarks;
+  $('btn-import-file').textContent = L.importFile;
+  $('btn-export-file').textContent = L.exportFile;
+  $('data-status').hidden = true;
+  $('modal-data').hidden = false;
+}
+
+function showDataStatus(message) {
+  const status = $('data-status');
+  status.textContent = message;
+  status.hidden = false;
+}
+
+let bookmarkFolders = [];
+let bookmarkSelection = new Set();
+
+async function openBookmarksModal() {
+  bookmarkFolders = (await window.api.readBookmarks()) || [];
+  if (!bookmarkFolders.length) {
+    showDataStatus(L.noBookmarks);
+    return;
+  }
+  bookmarkSelection = new Set();
+  $('modal-data').hidden = true;
+  $('modal-bookmarks-title').textContent = L.bookmarksTitle;
+  $('btn-bookmarks-cancel').textContent = L.cancel;
+  renderBookmarkList();
+  $('modal-bookmarks').hidden = false;
+}
+
+function renderBookmarkList() {
+  const list = $('bookmark-list');
+  list.innerHTML = '';
+  bookmarkFolders.forEach((folder, index) => {
+    const row = document.createElement('label');
+    row.className = 'choice-option';
+
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.checked = bookmarkSelection.has(index);
+    checkbox.addEventListener('change', () => {
+      if (checkbox.checked) bookmarkSelection.add(index);
+      else bookmarkSelection.delete(index);
+      updateBookmarkImportButton();
+    });
+
+    const label = document.createElement('span');
+    label.className = 'option-label';
+    label.textContent = folder.label ? `${folder.name} (${folder.label})` : folder.name;
+    label.title = label.textContent;
+
+    const count = document.createElement('span');
+    count.className = 'bookmark-count';
+    count.textContent = `${folder.sites.length} ${folder.sites.length === 1 ? L.site : L.sites}`;
+
+    row.append(checkbox, label, count);
+    list.appendChild(row);
+  });
+  updateBookmarkImportButton();
+}
+
+function updateBookmarkImportButton() {
+  const btn = $('btn-bookmarks-import');
+  btn.textContent = fmt(L.importCount, { n: bookmarkSelection.size });
+  btn.disabled = bookmarkSelection.size === 0;
+}
+
+function importSelectedBookmarks() {
+  for (const index of bookmarkSelection) {
+    const folder = bookmarkFolders[index];
+    if (!folder) continue;
+    projects.push({
+      id: uid(),
+      name: folder.name.slice(0, 40),
+      icon: '🔖',
+      sites: folder.sites.map((s) => ({ id: uid(), title: s.title.slice(0, 60) || '', url: s.url }))
+    });
+  }
+  saveProjects();
+  $('modal-bookmarks').hidden = true;
+  renderHome();
+}
+
 function renderMenu() {
   $('menu-language').textContent = L.language;
   $('menu-scheme').textContent = L.schemeMenu;
   $('menu-ontop').textContent = `${L.layerMenu} · ${settings.alwaysOnTop ? L.layerShortTop : L.layerShortNormal}`;
   $('menu-autostart').textContent = settings.openAtLogin ? L.autostartOn : L.autostartOff;
   $('menu-hide').textContent = L.hideWindow;
+  $('menu-data').textContent = L.dataMenu;
   $('menu-github').textContent = L.github;
   $('menu-quit').textContent = L.quit;
 }
@@ -784,6 +896,29 @@ async function init() {
     window.api.openExternal(GITHUB_URL);
     $('menu').hidden = true;
   });
+  $('menu-data').addEventListener('click', () => {
+    openDataModal();
+    $('menu').hidden = true;
+  });
+  $('btn-import-bookmarks').addEventListener('click', openBookmarksModal);
+  $('btn-export-file').addEventListener('click', async () => {
+    const ok = await window.api.exportFile();
+    showDataStatus(ok ? L.exportDone : L.exportFailed);
+  });
+  $('btn-import-file').addEventListener('click', async () => {
+    const result = await window.api.importFile();
+    if (!result) return;
+    if (result.error) {
+      showDataStatus(L.importFailed);
+      return;
+    }
+    projects = result.projects || projects;
+    logos = result.logos || logos;
+    showDataStatus(fmt(L.importDone, { n: result.imported }));
+    if (!currentProjectId) renderHome();
+  });
+  $('btn-bookmarks-cancel').addEventListener('click', () => ($('modal-bookmarks').hidden = true));
+  $('btn-bookmarks-import').addEventListener('click', importSelectedBookmarks);
   $('menu-hide').addEventListener('click', () => {
     $('menu').hidden = true;
     window.api.hideWindow();
@@ -847,7 +982,7 @@ async function init() {
   }
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
-      for (const id of ['modal-project', 'modal-site', 'modal-scheme', 'modal-language', 'modal-layer']) {
+      for (const id of ['modal-project', 'modal-site', 'modal-scheme', 'modal-language', 'modal-layer', 'modal-data', 'modal-bookmarks']) {
         $(id).hidden = true;
       }
       $('menu').hidden = true;
