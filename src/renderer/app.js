@@ -278,15 +278,18 @@ function renderProject() {
       hostname = '';
     }
 
-    const favicon = document.createElement('img');
-    favicon.className = 'site-favicon';
-    favicon.src = `https://www.google.com/s2/favicons?domain=${encodeURIComponent(hostname)}&sz=64`;
-    favicon.addEventListener('error', () => {
-      const fallback = document.createElement('div');
-      fallback.className = 'site-favicon-fallback';
-      fallback.textContent = '🌐';
-      favicon.replaceWith(fallback);
-    });
+    const favicon = document.createElement('div');
+    favicon.className = 'site-favicon-fallback';
+    favicon.textContent = '🌐';
+    if (hostname) {
+      window.api.getFavicon(hostname).then((dataUrl) => {
+        if (!dataUrl) return;
+        const img = document.createElement('img');
+        img.className = 'site-favicon';
+        img.src = dataUrl;
+        favicon.replaceWith(img);
+      });
+    }
 
     const info = document.createElement('div');
     info.className = 'site-info';

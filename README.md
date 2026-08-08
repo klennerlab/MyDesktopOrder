@@ -16,7 +16,7 @@ Organisiere deine Webseiten in Projekten (z. B. „Poloflow“) und öffne sie m
 - 📌 **Immer im Vordergrund** anpinnen (optional)
 - 🖥️ Widget-Look: rahmenloses, dunkles Kästchen, frei auf dem Desktop platzierbar – die Position wird gemerkt
 - 🌍 Deutsch und Englisch (im Menü ⋯ umschaltbar)
-- 💾 Alles wird lokal gespeichert – keine Cloud, kein Konto, keine Datensammlung
+- 💾 Alles wird lokal gespeichert – keine Cloud, kein Konto, keine Datensammlung, keine Anfragen an Drittanbieter (auch die Webseiten-Symbole kommen direkt von der jeweiligen Seite und werden lokal zwischengespeichert)
 
 ## Installation
 
@@ -61,7 +61,7 @@ Organize your websites into projects (e.g. “Poloflow”) and open them with on
 - 📌 Optional **always-on-top** pinning
 - 🖥️ Widget look: frameless dark box, place it anywhere on your desktop – position is remembered
 - 🌍 German and English (switchable in the ⋯ menu)
-- 💾 Everything is stored locally – no cloud, no account, no data collection
+- 💾 Everything is stored locally – no cloud, no account, no data collection, no third-party requests (site icons are loaded directly from each site and cached locally)
 
 ## Installation
 
