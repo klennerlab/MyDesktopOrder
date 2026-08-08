@@ -10,9 +10,14 @@ Organisiere deine Webseiten in Projekten (z. B. „Poloflow“) und öffne sie m
 
 ## Funktionen
 
-- 🗂️ **Projekte anlegen** mit eigenem Namen und Icon (Emoji)
-- 🔗 **Webseiten hinzufügen/entfernen** pro Projekt
-- 🚀 **Alle öffnen** oder nur **ausgewählte Seiten** öffnen (im Standard-Browser)
+- 🗂️ **Projekte anlegen** mit eigenem Namen, Emoji-Icon oder **eigenem Logo**
+- 🔗 **Webseiten hinzufügen/bearbeiten/entfernen** pro Projekt, Reihenfolge per Ziehen
+- 🚀 **Alle öffnen** oder nur **ausgewählte Seiten** öffnen – in einem **neuen Browser-Fenster**
+- 🔍 **Suche** über alle Projekte und Seiten
+- 🔖 **Browser-Lesezeichen importieren** (Chrome, Edge, Brave – ohne Erweiterung)
+- 📤 **Export/Import als Datei** – Projekte ohne Cloud teilen
+- 📝 **Notizen** pro Projekt und Seite, Duplikat-Warnung
+- ⌨️ Globales Tastenkürzel **Cmd/Strg + Alt + P** zum Ein-/Ausblenden
 - 📌 **Immer im Vordergrund** anpinnen (optional)
 - 🖥️ Widget-Look: rahmenloses, dunkles Kästchen, frei auf dem Desktop platzierbar – die Position wird gemerkt
 - 🌍 Deutsch und Englisch (im Menü ⋯ umschaltbar)
@@ -55,9 +60,14 @@ Organize your websites into projects (e.g. “Poloflow”) and open them with on
 
 ## Features
 
-- 🗂️ **Create projects** with a custom name and icon (emoji)
-- 🔗 **Add/remove websites** per project
-- 🚀 **Open all** sites or only **selected ones** (in your default browser)
+- 🗂️ **Create projects** with a custom name, emoji icon or **your own logo**
+- 🔗 **Add/edit/remove websites** per project, reorder via drag & drop
+- 🚀 **Open all** sites or only **selected ones** – in a **new browser window**
+- 🔍 **Search** across all projects and sites
+- 🔖 **Import browser bookmarks** (Chrome, Edge, Brave – no extension needed)
+- 📤 **Export/import as a file** – share projects without any cloud
+- 📝 **Notes** per project and site, duplicate warning
+- ⌨️ Global shortcut **Cmd/Ctrl + Alt + P** to show/hide
 - 📌 Optional **always-on-top** pinning
 - 🖥️ Widget look: frameless dark box, place it anywhere on your desktop – position is remembered
 - 🌍 German and English (switchable in the ⋯ menu)
