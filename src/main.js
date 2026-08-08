@@ -98,6 +98,25 @@ function createWindow() {
 
   win.loadFile(path.join(__dirname, 'renderer', 'index.html'));
 
+  // Right-click menu in text fields: cut/copy/paste + native emoji picker
+  win.webContents.on('context-menu', (event, params) => {
+    if (!params.isEditable) return;
+    const de = (data.settings.language || app.getLocale().toLowerCase()).startsWith('de');
+    const template = [
+      { role: 'cut', label: de ? 'Ausschneiden' : 'Cut' },
+      { role: 'copy', label: de ? 'Kopieren' : 'Copy' },
+      { role: 'paste', label: de ? 'Einfügen' : 'Paste' }
+    ];
+    if (app.isEmojiPanelSupported && app.isEmojiPanelSupported()) {
+      template.push({ type: 'separator' });
+      template.push({
+        label: de ? '😀 Emoji einfügen' : '😀 Insert emoji',
+        click: () => app.showEmojiPanel()
+      });
+    }
+    Menu.buildFromTemplate(template).popup();
+  });
+
   if (data.settings.locked) {
     win.setMovable(false);
     win.setResizable(false);
@@ -170,6 +189,15 @@ if (!gotLock) {
   app.whenReady().then(() => {
     dataPath = path.join(app.getPath('userData'), 'data.json');
     data = loadData();
+
+    // A proper Edit menu is required on macOS so the system emoji panel
+    // (Ctrl+Cmd+Space / 🌐 key) can insert into text fields
+    if (isMac) {
+      Menu.setApplicationMenu(
+        Menu.buildFromTemplate([{ role: 'appMenu' }, { role: 'editMenu' }, { role: 'windowMenu' }])
+      );
+    }
+
     createWindow();
     createTray();
 
