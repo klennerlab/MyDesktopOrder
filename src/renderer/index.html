@@ -26,7 +26,13 @@
 
     <!-- Home: project grid -->
     <main id="view-home">
+      <input id="search-input" type="text" class="search-input no-drag" />
       <div id="project-grid" class="project-grid"></div>
+      <div id="search-results" class="site-list" hidden></div>
+      <div id="search-empty" class="empty-state" hidden>
+        <div class="empty-icon">🔍</div>
+        <p id="search-empty-text"></p>
+      </div>
       <div id="empty-state" class="empty-state" hidden>
         <div class="empty-icon">🗂️</div>
         <p id="empty-text"></p>

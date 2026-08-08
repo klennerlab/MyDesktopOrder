@@ -55,6 +55,9 @@ const I18N = {
     cancel: 'Abbrechen',
     deleteProjectConfirm: 'Projekt „{name}“ wirklich löschen?',
     emptyProjects: 'Erstelle dein erstes Projekt!',
+    searchPlaceholder: '🔍 Suchen…',
+    searchEmpty: 'Nichts gefunden.',
+    projectTag: 'Projekt',
     noIcon: 'Ohne Icon – der Titel füllt das Feld',
     emptySites: 'Noch keine Webseiten in diesem Projekt.\nFüge deine erste Seite hinzu!',
     openAll: 'Alle öffnen',
@@ -103,6 +106,9 @@ const I18N = {
     cancel: 'Cancel',
     deleteProjectConfirm: 'Really delete project "{name}"?',
     emptyProjects: 'Create your first project!',
+    searchPlaceholder: '🔍 Search…',
+    searchEmpty: 'No results.',
+    projectTag: 'Project',
     noIcon: 'No icon – the title fills the tile',
     emptySites: 'No websites in this project yet.\nAdd your first site!',
     openAll: 'Open all',
@@ -191,6 +197,14 @@ function renderHome() {
   currentProjectId = null;
   selectedSites.clear();
 
+  $('search-input').hidden = projects.length === 0;
+  const query = $('search-input').value.trim().toLowerCase();
+  if (query) return renderSearch(query);
+
+  $('search-results').hidden = true;
+  $('search-empty').hidden = true;
+  $('project-grid').hidden = false;
+
   const grid = $('project-grid');
   grid.innerHTML = '';
   $('empty-state').hidden = projects.length > 0;
@@ -232,6 +246,73 @@ function openProject(id) {
   currentProjectId = id;
   selectedSites.clear();
   renderProject();
+}
+
+function renderSearch(query) {
+  $('project-grid').hidden = true;
+  $('empty-state').hidden = true;
+
+  const results = $('search-results');
+  results.innerHTML = '';
+  const matches = (text) => (text || '').toLowerCase().includes(query);
+  let count = 0;
+
+  for (const project of projects) {
+    if (matches(project.name)) {
+      count += 1;
+      const row = document.createElement('div');
+      row.className = 'site-row';
+
+      const icon = document.createElement('div');
+      icon.className = 'site-favicon-fallback';
+      icon.textContent = isLogo(project.icon) ? '🗂️' : project.icon || '🗂️';
+
+      const info = document.createElement('div');
+      info.className = 'site-info';
+      const title = document.createElement('div');
+      title.className = 'site-title';
+      title.textContent = project.name;
+      const tag = document.createElement('div');
+      tag.className = 'search-result-project';
+      tag.textContent = L.projectTag;
+      info.append(title, tag);
+      info.addEventListener('click', () => {
+        $('search-input').value = '';
+        openProject(project.id);
+      });
+
+      row.append(icon, info);
+      results.appendChild(row);
+    }
+    for (const site of project.sites) {
+      if (!matches(site.title) && !matches(site.url)) continue;
+      count += 1;
+      const row = document.createElement('div');
+      row.className = 'site-row';
+
+      const icon = document.createElement('div');
+      icon.className = 'site-favicon-fallback';
+      icon.textContent = '🌐';
+
+      const info = document.createElement('div');
+      info.className = 'site-info';
+      info.title = site.url;
+      const title = document.createElement('div');
+      title.className = 'site-title';
+      title.textContent = site.title;
+      const tag = document.createElement('div');
+      tag.className = 'search-result-project';
+      tag.textContent = `${project.icon && !isLogo(project.icon) ? project.icon + ' ' : ''}${project.name}`;
+      info.append(title, tag);
+      info.addEventListener('click', () => window.api.openUrls([site.url]));
+
+      row.append(icon, info);
+      results.appendChild(row);
+    }
+  }
+
+  results.hidden = count === 0;
+  $('search-empty').hidden = count > 0;
 }
 
 function renderProject() {
@@ -623,6 +704,8 @@ function applyTexts() {
   $('header-title').textContent = L.myProjects;
   $('btn-new-project').textContent = L.newProject;
   $('empty-text').textContent = L.emptyProjects;
+  $('search-input').placeholder = L.searchPlaceholder;
+  $('search-empty-text').textContent = L.searchEmpty;
   $('site-empty-text').textContent = L.emptySites;
   $('btn-lock').title = L.lock;
   $('btn-menu').title = L.menu;
@@ -708,6 +791,7 @@ async function init() {
   $('menu-quit').addEventListener('click', () => window.api.quit());
 
   // Home
+  $('search-input').addEventListener('input', () => renderHome());
   $('btn-new-project').addEventListener('click', () => openProjectModal(null));
   $('empty-state').addEventListener('click', () => openProjectModal(null));
   $('site-empty').addEventListener('click', openSiteModal);
@@ -767,6 +851,10 @@ async function init() {
         $(id).hidden = true;
       }
       $('menu').hidden = true;
+      if ($('search-input').value) {
+        $('search-input').value = '';
+        if (!currentProjectId) renderHome();
+      }
     }
   });
   // Clicking the dark backdrop closes any modal
