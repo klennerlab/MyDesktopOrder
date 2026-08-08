@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, shell, screen, Tray, Menu, nativeImage, dialog } = require('electron');
+const { app, BrowserWindow, ipcMain, shell, screen, Tray, Menu, nativeImage, dialog, globalShortcut } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const { exec, execFile, spawn } = require('child_process');
@@ -173,9 +173,23 @@ if (!gotLock) {
     createWindow();
     createTray();
 
+    // Global shortcut: show/hide the widget from anywhere
+    try {
+      globalShortcut.register('CommandOrControl+Alt+P', () => {
+        if (win && !win.isDestroyed() && win.isVisible()) win.hide();
+        else showWindow();
+      });
+    } catch {
+      // another app may own the shortcut — not critical
+    }
+
     app.on('activate', showWindow);
   });
 }
+
+app.on('will-quit', () => {
+  globalShortcut.unregisterAll();
+});
 
 // The app lives in the tray/menu bar — closing the window does not quit it.
 app.on('window-all-closed', () => {});
