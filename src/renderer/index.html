@@ -51,6 +51,7 @@
         <button id="btn-delete-project" class="icon-btn danger" title="">🗑</button>
       </div>
 
+      <p id="project-note" class="project-note" hidden></p>
       <div id="site-list" class="site-list"></div>
       <div id="site-empty" class="empty-state" hidden>
         <div class="empty-icon">🔗</div>
@@ -74,6 +75,8 @@
         <h3 id="modal-project-title"></h3>
         <label id="label-project-name"></label>
         <input id="input-project-name" type="text" maxlength="40" />
+        <label id="label-project-note"></label>
+        <textarea id="input-project-note" rows="2" maxlength="1000"></textarea>
         <label id="label-project-icon"></label>
         <div id="emoji-grid" class="emoji-grid"></div>
         <button id="btn-toggle-emojis" class="ghost toggle-emojis" type="button"></button>
@@ -95,6 +98,8 @@
         <input id="input-site-url" type="text" placeholder="https://…" />
         <label id="label-site-name"></label>
         <input id="input-site-name" type="text" maxlength="60" />
+        <label id="label-site-note"></label>
+        <textarea id="input-site-note" rows="2" maxlength="500"></textarea>
         <div class="modal-buttons">
           <button id="btn-site-cancel" class="ghost"></button>
           <button id="btn-site-save" class="primary"></button>

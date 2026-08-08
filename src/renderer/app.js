@@ -72,6 +72,8 @@ const I18N = {
     siteName: 'Titel (optional)',
     siteUrl: 'Adresse (URL)',
     removeSiteConfirm: '„{name}“ aus dem Projekt entfernen?',
+    duplicateConfirm: 'Diese Seite ist schon im Projekt („{name}“). Trotzdem hinzufügen?',
+    noteLabel: 'Notiz (optional)',
     sites: 'Seiten',
     site: 'Seite',
     lock: 'Position fixieren',
@@ -135,6 +137,8 @@ const I18N = {
     siteName: 'Title (optional)',
     siteUrl: 'Address (URL)',
     removeSiteConfirm: 'Remove "{name}" from this project?',
+    duplicateConfirm: 'This site is already in the project ("{name}"). Add anyway?',
+    noteLabel: 'Note (optional)',
     sites: 'sites',
     site: 'site',
     lock: 'Lock position',
@@ -359,6 +363,10 @@ function renderProject() {
   }
   $('project-name').textContent = project.name;
 
+  const projectNote = $('project-note');
+  projectNote.textContent = project.note || '';
+  projectNote.hidden = !project.note;
+
   const list = $('site-list');
   list.innerHTML = '';
   $('site-empty').hidden = project.sites.length > 0;
@@ -409,6 +417,13 @@ function renderProject() {
     urlLine.textContent = hostname || site.url;
 
     info.append(title, urlLine);
+    if (site.note) {
+      const noteLine = document.createElement('div');
+      noteLine.className = 'site-note';
+      noteLine.textContent = site.note;
+      info.appendChild(noteLine);
+      info.title = `${site.url}\n${site.note}`;
+    }
     info.addEventListener('click', () => window.api.openUrls([site.url]));
 
     const edit = document.createElement('button');
@@ -482,6 +497,7 @@ function openProjectModal(projectId) {
 
   $('modal-project-title').textContent = project ? L.editProject : L.createProject;
   $('input-project-name').value = project ? project.name : '';
+  $('input-project-note').value = project ? project.note || '' : '';
   chosenIcon = project ? project.icon || null : null;
   emojiExpanded = false;
   renderEmojiGrid();
@@ -551,14 +567,16 @@ function saveProjectModal() {
     $('input-project-name').focus();
     return;
   }
+  const note = $('input-project-note').value.trim();
   if (editingProjectId) {
     const project = projects.find((p) => p.id === editingProjectId);
     if (project) {
       project.name = name;
       project.icon = chosenIcon;
+      project.note = note;
     }
   } else {
-    projects.push({ id: uid(), name, icon: chosenIcon, sites: [] });
+    projects.push({ id: uid(), name, icon: chosenIcon, note, sites: [] });
   }
   saveProjects();
   $('modal-project').hidden = true;
@@ -576,6 +594,7 @@ function openSiteModal(siteId) {
   $('modal-site-title').textContent = site ? L.editSiteTitle : L.addSiteTitle;
   $('input-site-name').value = site ? site.title : '';
   $('input-site-url').value = site ? site.url : '';
+  $('input-site-note').value = site ? site.note || '' : '';
   $('modal-site').hidden = false;
   $('input-site-url').focus();
 }
@@ -598,12 +617,19 @@ function saveSiteModal() {
       title = url;
     }
   }
+  const duplicate = project.sites.find(
+    (s) => s.id !== editingSiteId && s.url.toLowerCase() === url.toLowerCase()
+  );
+  if (duplicate && !confirm(fmt(L.duplicateConfirm, { name: duplicate.title }))) return;
+
+  const note = $('input-site-note').value.trim();
   const existing = editingSiteId ? project.sites.find((s) => s.id === editingSiteId) : null;
   if (existing) {
     existing.title = title;
     existing.url = url;
+    existing.note = note;
   } else {
-    project.sites.push({ id: uid(), title, url });
+    project.sites.push({ id: uid(), title, url, note });
   }
   editingSiteId = null;
   saveProjects();
@@ -826,6 +852,8 @@ function applyTexts() {
   $('btn-edit-project').title = L.editProject;
   $('btn-delete-project').title = L.deleteProjectConfirm.split('{')[0].trim();
   $('label-project-name').textContent = L.projectName;
+  $('label-project-note').textContent = L.noteLabel;
+  $('label-site-note').textContent = L.noteLabel;
   $('label-project-icon').textContent = L.projectIcon;
   $('label-project-logo').textContent = L.logoLabel;
   $('btn-upload-logo').textContent = L.uploadLogo;
