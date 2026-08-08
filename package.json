@@ -23,6 +23,7 @@
     ],
     "mac": {
       "category": "public.app-category.productivity",
+      "artifactName": "${name}-mac-${arch}.${ext}",
       "target": [
         {
           "target": "dmg",
@@ -57,8 +58,12 @@
       ]
     },
     "nsis": {
+      "artifactName": "${name}-setup-windows.${ext}",
       "oneClick": true,
       "perMachine": false
+    },
+    "portable": {
+      "artifactName": "${name}-portable-windows.${ext}"
     }
   },
   "devDependencies": {
