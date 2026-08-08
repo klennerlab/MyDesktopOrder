@@ -379,36 +379,75 @@ ipcMain.handle('lang:set', (event, value) => {
 
 // ---- Favicons: fetched once directly from the site itself, then cached locally ----
 
-function fetchImage(url, redirectsLeft = 4) {
+const FAVICON_UA =
+  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36';
+
+function fetchUrl(url, maxBytes, redirectsLeft = 4) {
   return new Promise((resolve, reject) => {
-    const req = https.get(url, { timeout: 8000, headers: { 'User-Agent': 'MyDesktopOrder' } }, (res) => {
+    const req = https.get(url, { timeout: 8000, headers: { 'User-Agent': FAVICON_UA, Accept: '*/*' } }, (res) => {
       if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location && redirectsLeft > 0) {
         res.resume();
         const next = new URL(res.headers.location, url).href;
         if (!next.startsWith('https:')) return reject(new Error('non-https redirect'));
-        return resolve(fetchImage(next, redirectsLeft - 1));
+        return resolve(fetchUrl(next, maxBytes, redirectsLeft - 1));
       }
-      const type = (res.headers['content-type'] || 'image/x-icon').split(';')[0].trim();
-      if (res.statusCode !== 200 || !type.startsWith('image/')) {
-        res.resume();
-        return reject(new Error(`status ${res.statusCode} type ${type}`));
-      }
+      const type = (res.headers['content-type'] || '').split(';')[0].trim();
       const chunks = [];
       let size = 0;
       res.on('data', (chunk) => {
         size += chunk.length;
-        if (size > 300 * 1024) {
+        if (size > maxBytes) {
+          // keep what we have — for HTML pages the <head> is at the top anyway
           req.destroy();
-          reject(new Error('too big'));
+          resolve({ status: res.statusCode, type, buffer: Buffer.concat(chunks), baseUrl: url });
         } else {
           chunks.push(chunk);
         }
       });
-      res.on('end', () => resolve({ buffer: Buffer.concat(chunks), type }));
+      res.on('end', () => resolve({ status: res.statusCode, type, buffer: Buffer.concat(chunks), baseUrl: url }));
     });
     req.on('timeout', () => req.destroy(new Error('timeout')));
     req.on('error', reject);
   });
+}
+
+async function tryFaviconIco(host) {
+  const res = await fetchUrl(`https://${host}/favicon.ico`, 300 * 1024);
+  if (res.status !== 200 || !res.type.startsWith('image/') || !res.buffer.length) {
+    throw new Error('no direct favicon');
+  }
+  return `data:${res.type};base64,${res.buffer.toString('base64')}`;
+}
+
+async function tryFaviconFromHtml(host) {
+  const page = await fetchUrl(`https://${host}/`, 500 * 1024);
+  if (page.status !== 200 || !page.type.startsWith('text/html')) throw new Error('no html');
+  const html = page.buffer.toString('utf8');
+  const linkTag = html.match(/<link[^>]+rel=["'][^"']*icon[^"']*["'][^>]*>/i);
+  if (!linkTag) throw new Error('no icon link');
+  const href = (linkTag[0].match(/href=["']([^"']+)["']/i) || [])[1];
+  if (!href) throw new Error('no href');
+  if (href.startsWith('data:image/')) return href;
+  const iconUrl = new URL(href, page.baseUrl).href;
+  if (!iconUrl.startsWith('https:')) throw new Error('non-https icon');
+  const icon = await fetchUrl(iconUrl, 300 * 1024);
+  if (icon.status !== 200 || !icon.type.startsWith('image/') || !icon.buffer.length) {
+    throw new Error('icon fetch failed');
+  }
+  return `data:${icon.type};base64,${icon.buffer.toString('base64')}`;
+}
+
+// ap.www.example.com → [ap.www.example.com, www.example.com, example.com, www.example.com]
+function hostCandidates(hostname) {
+  const candidates = [hostname];
+  let host = hostname;
+  while (host.split('.').length > 2) {
+    host = host.split('.').slice(1).join('.');
+    candidates.push(host);
+  }
+  const root = candidates[candidates.length - 1];
+  if (!hostname.startsWith('www.')) candidates.push('www.' + root);
+  return [...new Set(candidates)].slice(0, 4);
 }
 
 const faviconFailures = new Set();
@@ -419,18 +458,17 @@ ipcMain.handle('favicon:get', async (event, hostname) => {
   if (data.favicons[hostname]) return data.favicons[hostname];
   if (faviconFailures.has(hostname)) return null;
 
-  const candidates = hostname.startsWith('www.')
-    ? [hostname, hostname.slice(4)]
-    : [hostname, 'www.' + hostname];
-  for (const host of candidates) {
-    try {
-      const { buffer, type } = await fetchImage(`https://${host}/favicon.ico`);
-      const dataUrl = `data:${type};base64,${buffer.toString('base64')}`;
-      data.favicons[hostname] = dataUrl;
-      persist();
-      return dataUrl;
-    } catch {
-      // try next candidate
+  const candidates = hostCandidates(hostname);
+  for (const attempt of [tryFaviconIco, tryFaviconFromHtml]) {
+    for (const host of candidates) {
+      try {
+        const dataUrl = await attempt(host);
+        data.favicons[hostname] = dataUrl;
+        persist();
+        return dataUrl;
+      } catch {
+        // try next candidate / strategy
+      }
     }
   }
   faviconFailures.add(hostname);
