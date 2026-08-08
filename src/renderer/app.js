@@ -101,8 +101,12 @@ const I18N = {
     back: 'Zurück',
     close: 'Schließen',
     menu: 'Menü',
-    autostartOn: '✓ Beim Anmelden starten',
-    autostartOff: 'Beim Anmelden starten',
+    autostartMenu: 'Autostart',
+    autostartTitle: 'Beim Anmelden starten',
+    autostartOn: 'An – App startet automatisch mit dem Computer',
+    autostartOff: 'Aus – App manuell starten',
+    stateOn: 'An',
+    stateOff: 'Aus',
     github: 'Auf GitHub ansehen',
     language: 'Sprache · Deutsch',
     hideWindow: 'Schließen (in Menüleiste)',
@@ -166,8 +170,12 @@ const I18N = {
     back: 'Back',
     close: 'Close',
     menu: 'Menu',
-    autostartOn: '✓ Start at login',
-    autostartOff: 'Start at login',
+    autostartMenu: 'Start at login',
+    autostartTitle: 'Start at login',
+    autostartOn: 'On – app starts with your computer',
+    autostartOff: 'Off – start the app manually',
+    stateOn: 'On',
+    stateOff: 'Off',
     github: 'View on GitHub',
     language: 'Language · English',
     hideWindow: 'Close (keep in menu bar)',
@@ -710,6 +718,24 @@ function openLanguageModal() {
   $('modal-language').hidden = false;
 }
 
+function openAutostartModal() {
+  $('modal-autostart-title').textContent = L.autostartTitle;
+  renderChoiceList(
+    'autostart-list',
+    [
+      { value: 'on', label: L.autostartOn },
+      { value: 'off', label: L.autostartOff }
+    ],
+    settings.openAtLogin ? 'on' : 'off',
+    async (value) => {
+      settings.openAtLogin = await window.api.setAutostart(value === 'on');
+      renderMenu();
+      $('modal-autostart').hidden = true;
+    }
+  );
+  $('modal-autostart').hidden = false;
+}
+
 function openLayerModal() {
   $('modal-layer-title').textContent = L.layerTitle;
   renderChoiceList(
@@ -819,7 +845,7 @@ function renderMenu() {
   $('menu-language').textContent = L.language;
   $('menu-scheme').textContent = L.schemeMenu;
   $('menu-ontop').textContent = `${L.layerMenu} · ${settings.alwaysOnTop ? L.layerShortTop : L.layerShortNormal}`;
-  $('menu-autostart').textContent = settings.openAtLogin ? L.autostartOn : L.autostartOff;
+  $('menu-autostart').textContent = `${L.autostartMenu} · ${settings.openAtLogin ? L.stateOn : L.stateOff}`;
   $('menu-hide').textContent = L.hideWindow;
   $('menu-data').textContent = L.dataMenu;
   $('menu-github').textContent = L.github;
@@ -916,9 +942,9 @@ async function init() {
     $('menu').hidden = true;
   });
   $('btn-scheme-close').addEventListener('click', () => ($('modal-scheme').hidden = true));
-  $('menu-autostart').addEventListener('click', async () => {
-    settings.openAtLogin = await window.api.setAutostart(!settings.openAtLogin);
-    renderMenu();
+  $('menu-autostart').addEventListener('click', () => {
+    openAutostartModal();
+    $('menu').hidden = true;
   });
   $('menu-github').addEventListener('click', () => {
     window.api.openExternal(GITHUB_URL);
@@ -1010,7 +1036,7 @@ async function init() {
   }
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
-      for (const id of ['modal-project', 'modal-site', 'modal-scheme', 'modal-language', 'modal-layer', 'modal-data', 'modal-bookmarks']) {
+      for (const id of ['modal-project', 'modal-site', 'modal-scheme', 'modal-language', 'modal-layer', 'modal-autostart', 'modal-data', 'modal-bookmarks']) {
         $(id).hidden = true;
       }
       $('menu').hidden = true;
