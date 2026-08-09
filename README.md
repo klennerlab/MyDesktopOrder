@@ -12,6 +12,8 @@ Organisiere deine Webseiten in Projekten (z. B. „Poloflow“) und öffne sie m
 
 - 🗂️ **Projekte anlegen** mit eigenem Namen, Emoji-Icon oder **eigenem Logo**
 - 🔗 **Webseiten hinzufügen/bearbeiten/entfernen** pro Projekt, Reihenfolge per Ziehen
+- ⌨️ **Arbeitsplatz-Starter:** Projekte können auch **Terminals** (Ordner + Startbefehl, z. B. `claude`), **Ordner** und **Dateien** enthalten – „Alle öffnen“ stellt deinen ganzen Arbeitsplatz auf
+- 🔐 Projekt-Löschen erfordert das Eintippen des Projektnamens – nichts geht aus Versehen verloren
 - 🚀 **Alle öffnen** oder nur **ausgewählte Seiten** öffnen – in einem **neuen Browser-Fenster**
 - 🔍 **Suche** über alle Projekte und Seiten
 - 🔖 **Browser-Lesezeichen importieren** (Chrome, Edge, Brave – ohne Erweiterung)
@@ -62,6 +64,8 @@ Organize your websites into projects (e.g. “Poloflow”) and open them with on
 
 - 🗂️ **Create projects** with a custom name, emoji icon or **your own logo**
 - 🔗 **Add/edit/remove websites** per project, reorder via drag & drop
+- ⌨️ **Workspace launcher:** projects can also contain **terminals** (folder + start command, e.g. `claude`), **folders** and **files** – “Open all” sets up your whole workspace
+- 🔐 Deleting a project requires typing its name – nothing gets lost by accident
 - 🚀 **Open all** sites or only **selected ones** – in a **new browser window**
 - 🔍 **Search** across all projects and sites
 - 🔖 **Import browser bookmarks** (Chrome, Edge, Brave – no extension needed)
