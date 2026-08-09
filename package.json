@@ -1,7 +1,7 @@
 {
   "name": "my-desktop-order",
   "productName": "My Desktop Order",
-  "version": "1.5.6",
+  "version": "1.5.7",
   "description": "Projekt-Kästchen für deinen Desktop: Webseiten in Projekten organisieren und gesammelt öffnen. / A project box for your desktop: organize websites into projects and open them together.",
   "main": "src/main.js",
   "license": "MIT",
