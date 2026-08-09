@@ -73,6 +73,8 @@ const I18N = {
     siteUrl: 'Adresse (URL)',
     removeSiteConfirm: '„{name}“ aus dem Projekt entfernen?',
     duplicateConfirm: 'Diese Seite ist schon im Projekt („{name}“). Trotzdem hinzufügen?',
+    delete: 'Löschen',
+    addAnyway: 'Trotzdem hinzufügen',
     noteLabel: 'Notiz (optional)',
     sites: 'Seiten',
     site: 'Seite',
@@ -143,6 +145,8 @@ const I18N = {
     siteUrl: 'Address (URL)',
     removeSiteConfirm: 'Remove "{name}" from this project?',
     duplicateConfirm: 'This site is already in the project ("{name}"). Add anyway?',
+    delete: 'Delete',
+    addAnyway: 'Add anyway',
     noteLabel: 'Note (optional)',
     sites: 'sites',
     site: 'site',
@@ -206,6 +210,30 @@ const fmt = (str, vars = {}) =>
 
 function currentProject() {
   return projects.find((p) => p.id === currentProjectId) || null;
+}
+
+// In-app confirmation dialog (replaces window.confirm)
+let confirmResolve = null;
+
+function askConfirm(message, actionLabel, danger = true) {
+  return new Promise((resolve) => {
+    confirmResolve = resolve;
+    $('confirm-message').textContent = message;
+    $('btn-confirm-cancel').textContent = L.cancel;
+    const okBtn = $('btn-confirm-ok');
+    okBtn.textContent = actionLabel;
+    okBtn.classList.toggle('danger-filled', danger);
+    okBtn.classList.toggle('primary', !danger);
+    $('modal-confirm').hidden = false;
+  });
+}
+
+function resolveConfirm(value) {
+  $('modal-confirm').hidden = true;
+  if (confirmResolve) {
+    confirmResolve(value);
+    confirmResolve = null;
+  }
 }
 
 function saveProjects() {
@@ -475,8 +503,9 @@ function renderProject() {
     remove.className = 'icon-btn danger site-action';
     remove.textContent = '✕';
     remove.title = L.close;
-    remove.addEventListener('click', () => {
-      if (!confirm(fmt(L.removeSiteConfirm, { name: site.title || hostname }))) return;
+    remove.addEventListener('click', async () => {
+      const ok = await askConfirm(fmt(L.removeSiteConfirm, { name: site.title || hostname }), L.delete);
+      if (!ok) return;
       project.sites = project.sites.filter((s) => s.id !== site.id);
       selectedSites.delete(site.id);
       saveProjects();
@@ -638,7 +667,7 @@ function openSiteModal(siteId) {
   $('input-site-url').focus();
 }
 
-function saveSiteModal() {
+async function saveSiteModal() {
   const project = currentProject();
   if (!project) return;
 
@@ -659,7 +688,9 @@ function saveSiteModal() {
   const duplicate = project.sites.find(
     (s) => s.id !== editingSiteId && s.url.toLowerCase() === url.toLowerCase()
   );
-  if (duplicate && !confirm(fmt(L.duplicateConfirm, { name: duplicate.title }))) return;
+  if (duplicate && !(await askConfirm(fmt(L.duplicateConfirm, { name: duplicate.title }), L.addAnyway, false))) {
+    return;
+  }
 
   const note = $('input-site-note').value.trim();
   const existing = editingSiteId ? project.sites.find((s) => s.id === editingSiteId) : null;
@@ -1008,6 +1039,8 @@ async function init() {
     if (!currentProjectId) renderHome();
   });
   $('btn-bookmarks-cancel').addEventListener('click', () => ($('modal-bookmarks').hidden = true));
+  $('btn-confirm-cancel').addEventListener('click', () => resolveConfirm(false));
+  $('btn-confirm-ok').addEventListener('click', () => resolveConfirm(true));
   $('btn-bookmarks-import').addEventListener('click', importSelectedBookmarks);
   $('menu-hide').addEventListener('click', () => {
     $('menu').hidden = true;
@@ -1024,10 +1057,11 @@ async function init() {
   // Project view
   $('btn-back').addEventListener('click', renderHome);
   $('btn-edit-project').addEventListener('click', () => openProjectModal(currentProjectId));
-  $('btn-delete-project').addEventListener('click', () => {
+  $('btn-delete-project').addEventListener('click', async () => {
     const project = currentProject();
     if (!project) return;
-    if (!confirm(fmt(L.deleteProjectConfirm, { name: project.name }))) return;
+    const ok = await askConfirm(fmt(L.deleteProjectConfirm, { name: project.name }), L.delete);
+    if (!ok) return;
     projects = projects.filter((p) => p.id !== project.id);
     saveProjects();
     renderHome();
@@ -1072,6 +1106,7 @@ async function init() {
   }
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
+      resolveConfirm(false);
       for (const id of ['modal-project', 'modal-site', 'modal-scheme', 'modal-language', 'modal-layer', 'modal-autostart', 'modal-data', 'modal-bookmarks']) {
         $(id).hidden = true;
       }
@@ -1085,7 +1120,9 @@ async function init() {
   // Clicking the dark backdrop closes any modal
   document.querySelectorAll('.overlay').forEach((overlay) => {
     overlay.addEventListener('click', (e) => {
-      if (e.target === overlay) overlay.hidden = true;
+      if (e.target !== overlay) return;
+      if (overlay.id === 'modal-confirm') resolveConfirm(false);
+      else overlay.hidden = true;
     });
   });
 }

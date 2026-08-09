@@ -645,6 +645,28 @@ footer {
   margin-top: 10px;
 }
 
+.confirm-message {
+  font-size: 13.5px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+button.danger-filled {
+  border: none;
+  border-radius: 12px;
+  padding: 9px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  background: var(--danger);
+  color: #fff;
+}
+
+button.danger-filled:hover {
+  filter: brightness(1.1);
+}
+
 /* ---- Color scheme picker ---- */
 
 .scheme-grid {
