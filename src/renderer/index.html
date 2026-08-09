@@ -61,7 +61,7 @@
       <div class="project-actions">
         <button id="btn-open-all" class="primary"></button>
         <button id="btn-open-selected" class="secondary" disabled></button>
-        <button id="btn-add-site" class="ghost"></button>
+        <div id="add-buttons" class="add-row"></div>
       </div>
     </main>
 
@@ -77,6 +77,8 @@
         <input id="input-project-name" type="text" maxlength="40" />
         <label id="label-project-note"></label>
         <textarea id="input-project-note" rows="2" maxlength="1000"></textarea>
+        <label id="label-project-types"></label>
+        <div id="type-grid" class="type-grid"></div>
         <label id="label-project-icon"></label>
         <div id="emoji-grid" class="emoji-grid"></div>
         <button id="btn-toggle-emojis" class="ghost toggle-emojis" type="button"></button>
@@ -115,6 +117,37 @@
           <button id="btn-scheme-close" class="icon-btn check" title="">✓</button>
         </div>
         <div id="scheme-grid" class="scheme-grid"></div>
+      </div>
+    </div>
+
+    <!-- Modal: add/edit terminal, folder or file item -->
+    <div id="modal-item" class="overlay" hidden>
+      <div class="modal">
+        <h3 id="modal-item-title"></h3>
+        <label id="label-item-path"></label>
+        <button id="btn-pick-path" class="ghost" type="button"></button>
+        <div id="picked-path" class="picked-path" hidden></div>
+        <label id="label-item-command" hidden></label>
+        <input id="input-item-command" type="text" maxlength="500" hidden />
+        <label id="label-item-name"></label>
+        <input id="input-item-name" type="text" maxlength="60" />
+        <div class="modal-buttons">
+          <button id="btn-item-cancel" class="ghost"></button>
+          <button id="btn-item-save" class="primary"></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal: delete project (requires typing the project name) -->
+    <div id="modal-delete-project" class="overlay" hidden>
+      <div class="modal">
+        <h3 id="delete-project-title"></h3>
+        <p id="delete-project-message" class="confirm-message"></p>
+        <input id="input-delete-name" type="text" />
+        <div class="modal-buttons">
+          <button id="btn-delete-cancel" class="ghost"></button>
+          <button id="btn-delete-confirm" class="danger-filled" disabled></button>
+        </div>
       </div>
     </div>
 

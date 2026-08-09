@@ -4,6 +4,8 @@ contextBridge.exposeInMainWorld('api', {
   getState: () => ipcRenderer.invoke('state:get'),
   saveProjects: (projects) => ipcRenderer.invoke('projects:save', projects),
   openUrls: (urls, opts) => ipcRenderer.invoke('urls:open', urls, opts),
+  openItems: (items) => ipcRenderer.invoke('items:open', items),
+  pickPath: (kind) => ipcRenderer.invoke('path:pick', kind),
   setPin: (value) => ipcRenderer.invoke('pin:set', value),
   setLock: (value) => ipcRenderer.invoke('lock:set', value),
   setAutostart: (value) => ipcRenderer.invoke('autostart:set', value),

@@ -59,11 +59,30 @@ const I18N = {
     searchEmpty: 'Nichts gefunden.',
     projectTag: 'Projekt',
     noIcon: 'Ohne Icon – der Titel füllt das Feld',
-    emptySites: 'Noch keine Webseiten in diesem Projekt.\nFüge deine erste Seite hinzu!',
+    emptySites: 'Noch nichts in diesem Projekt.\nFüge unten etwas hinzu!',
     openAll: 'Alle öffnen',
     openSelected: 'Ausgewählte öffnen ({n})',
-    addSite: '＋ Seite hinzufügen',
-    addSiteTitle: 'Seite hinzufügen',
+    addSite: '＋ Webseite',
+    addSiteTitle: 'Webseite hinzufügen',
+    typesLabel: 'Inhalte in diesem Projekt',
+    typeSite: '🌐 Webseiten',
+    typeTerminal: '⌨️ Terminals',
+    typeFolder: '📁 Ordner',
+    typeFile: '📄 Dateien',
+    addTerminal: '＋ Terminal',
+    addFolder: '＋ Ordner',
+    addFile: '＋ Datei',
+    terminalModalAdd: 'Terminal hinzufügen',
+    terminalModalEdit: 'Terminal bearbeiten',
+    folderModalAdd: 'Ordner hinzufügen',
+    folderModalEdit: 'Ordner bearbeiten',
+    fileModalAdd: 'Datei hinzufügen',
+    fileModalEdit: 'Datei bearbeiten',
+    pathFolder: 'Ordner',
+    pathFile: 'Datei',
+    chooseFolder: '📁 Ordner wählen…',
+    chooseFile: '📄 Datei wählen…',
+    commandLabel: 'Befehl beim Öffnen (optional), z. B. claude',
     editSiteTitle: 'Seite bearbeiten',
     moreIcons: 'Mehr anzeigen ▾',
     lessIcons: 'Weniger anzeigen ▴',
@@ -75,6 +94,8 @@ const I18N = {
     duplicateConfirm: 'Diese Seite ist schon im Projekt („{name}“). Trotzdem hinzufügen?',
     delete: 'Löschen',
     addAnyway: 'Trotzdem hinzufügen',
+    deleteProjectTitle: 'Projekt löschen',
+    deleteProjectType: 'Zum endgültigen Löschen tippe den Projektnamen ein:',
     noteLabel: 'Notiz (optional)',
     sites: 'Seiten',
     site: 'Seite',
@@ -131,11 +152,30 @@ const I18N = {
     searchEmpty: 'No results.',
     projectTag: 'Project',
     noIcon: 'No icon – the title fills the tile',
-    emptySites: 'No websites in this project yet.\nAdd your first site!',
+    emptySites: 'Nothing in this project yet.\nAdd something below!',
     openAll: 'Open all',
     openSelected: 'Open selected ({n})',
-    addSite: '＋ Add site',
-    addSiteTitle: 'Add site',
+    addSite: '＋ Website',
+    addSiteTitle: 'Add website',
+    typesLabel: 'Contents of this project',
+    typeSite: '🌐 Websites',
+    typeTerminal: '⌨️ Terminals',
+    typeFolder: '📁 Folders',
+    typeFile: '📄 Files',
+    addTerminal: '＋ Terminal',
+    addFolder: '＋ Folder',
+    addFile: '＋ File',
+    terminalModalAdd: 'Add terminal',
+    terminalModalEdit: 'Edit terminal',
+    folderModalAdd: 'Add folder',
+    folderModalEdit: 'Edit folder',
+    fileModalAdd: 'Add file',
+    fileModalEdit: 'Edit file',
+    pathFolder: 'Folder',
+    pathFile: 'File',
+    chooseFolder: '📁 Choose folder…',
+    chooseFile: '📄 Choose file…',
+    commandLabel: 'Command on open (optional), e.g. claude',
     editSiteTitle: 'Edit site',
     moreIcons: 'Show more ▾',
     lessIcons: 'Show less ▴',
@@ -147,6 +187,8 @@ const I18N = {
     duplicateConfirm: 'This site is already in the project ("{name}"). Add anyway?',
     delete: 'Delete',
     addAnyway: 'Add anyway',
+    deleteProjectTitle: 'Delete project',
+    deleteProjectType: 'To delete permanently, type the project name:',
     noteLabel: 'Note (optional)',
     sites: 'sites',
     site: 'site',
@@ -202,6 +244,17 @@ let emojiExpanded = false;
 let logos = [];
 
 const isLogo = (icon) => typeof icon === 'string' && icon.startsWith('data:');
+
+// ---- Item types (workspace entries) ----
+const ITEM_TYPES = ['site', 'terminal', 'folder', 'file'];
+const TYPE_ICONS = { terminal: '⌨️', folder: '📁', file: '📄' };
+const itemType = (item) => item.type || 'site';
+const projectTypes = (project) =>
+  Array.isArray(project.types) && project.types.length
+    ? project.types.filter((t) => ITEM_TYPES.includes(t))
+    : ['site'];
+const baseName = (p) => String(p).replace(/[\\/]+$/, '').split(/[\\/]/).pop() || p;
+let checkedTypes = new Set(['site']);
 
 const uid = () => (crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random()));
 
@@ -380,14 +433,14 @@ function renderSearch(query) {
       results.appendChild(row);
     }
     for (const site of project.sites) {
-      if (!matches(site.title) && !matches(site.url)) continue;
+      if (!matches(site.title) && !matches(site.url) && !matches(site.path)) continue;
       count += 1;
       const row = document.createElement('div');
       row.className = 'site-row';
 
       const icon = document.createElement('div');
       icon.className = 'site-favicon-fallback';
-      icon.textContent = '🌐';
+      icon.textContent = itemType(site) === 'site' ? '🌐' : TYPE_ICONS[itemType(site)] || '📄';
 
       const info = document.createElement('div');
       info.className = 'site-info';
@@ -399,7 +452,10 @@ function renderSearch(query) {
       tag.className = 'search-result-project';
       tag.textContent = `${project.icon && !isLogo(project.icon) ? project.icon + ' ' : ''}${project.name}`;
       info.append(title, tag);
-      info.addEventListener('click', () => window.api.openUrls([site.url]));
+      info.addEventListener('click', () => {
+        if (itemType(site) === 'site') window.api.openUrls([site.url]);
+        else window.api.openItems([site]);
+      });
 
       row.append(icon, info);
       results.appendChild(row);
@@ -451,16 +507,19 @@ function renderProject() {
       updateOpenSelectedButton();
     });
 
+    const type = itemType(site);
     let hostname = '';
-    try {
-      hostname = new URL(site.url).hostname;
-    } catch {
-      hostname = '';
+    if (type === 'site') {
+      try {
+        hostname = new URL(site.url).hostname;
+      } catch {
+        hostname = '';
+      }
     }
 
     const favicon = document.createElement('div');
     favicon.className = 'site-favicon-fallback';
-    favicon.textContent = '🌐';
+    favicon.textContent = type === 'site' ? '🌐' : TYPE_ICONS[type] || '📄';
     if (hostname) {
       window.api.getFavicon(hostname).then((dataUrl) => {
         if (!dataUrl) return;
@@ -471,17 +530,24 @@ function renderProject() {
       });
     }
 
+    const target = type === 'site' ? site.url : site.path;
+
     const info = document.createElement('div');
     info.className = 'site-info';
-    info.title = site.url;
+    info.title = target;
 
     const title = document.createElement('div');
     title.className = 'site-title';
-    title.textContent = site.title || hostname;
+    title.textContent = site.title || (type === 'site' ? hostname : baseName(site.path));
 
     const urlLine = document.createElement('div');
     urlLine.className = 'site-url';
-    urlLine.textContent = hostname || site.url;
+    urlLine.textContent =
+      type === 'site'
+        ? hostname || site.url
+        : type === 'terminal' && site.command
+          ? `${site.path} · $ ${site.command}`
+          : site.path;
 
     info.append(title, urlLine);
     if (site.note) {
@@ -489,15 +555,21 @@ function renderProject() {
       noteLine.className = 'site-note';
       noteLine.textContent = site.note;
       info.appendChild(noteLine);
-      info.title = `${site.url}\n${site.note}`;
+      info.title = `${target}\n${site.note}`;
     }
-    info.addEventListener('click', () => window.api.openUrls([site.url]));
+    info.addEventListener('click', () => {
+      if (type === 'site') window.api.openUrls([site.url]);
+      else window.api.openItems([site]);
+    });
 
     const edit = document.createElement('button');
     edit.className = 'icon-btn site-action';
     edit.textContent = '✎';
     edit.title = L.editSiteTitle;
-    edit.addEventListener('click', () => openSiteModal(site.id));
+    edit.addEventListener('click', () => {
+      if (type === 'site') openSiteModal(site.id);
+      else openItemModal(type, site.id);
+    });
 
     const remove = document.createElement('button');
     remove.className = 'icon-btn danger site-action';
@@ -547,8 +619,33 @@ function renderProject() {
 
   $('btn-open-all').textContent = L.openAll;
   $('btn-open-all').disabled = project.sites.length === 0;
-  $('btn-add-site').textContent = L.addSite;
+
+  // One add button per enabled content type
+  const addButtons = $('add-buttons');
+  addButtons.innerHTML = '';
+  const typeButtons = {
+    site: { label: L.addSite, open: () => openSiteModal(null) },
+    terminal: { label: L.addTerminal, open: () => openItemModal('terminal', null) },
+    folder: { label: L.addFolder, open: () => openItemModal('folder', null) },
+    file: { label: L.addFile, open: () => openItemModal('file', null) }
+  };
+  for (const type of projectTypes(project)) {
+    const btn = document.createElement('button');
+    btn.className = 'ghost';
+    btn.type = 'button';
+    btn.textContent = typeButtons[type].label;
+    btn.addEventListener('click', typeButtons[type].open);
+    addButtons.appendChild(btn);
+  }
+
   updateOpenSelectedButton();
+}
+
+function openItems(items) {
+  const urls = items.filter((i) => itemType(i) === 'site').map((i) => i.url);
+  const others = items.filter((i) => itemType(i) !== 'site');
+  if (urls.length) window.api.openUrls(urls, { newWindow: true });
+  if (others.length) window.api.openItems(others);
 }
 
 function updateOpenSelectedButton() {
@@ -567,11 +664,33 @@ function openProjectModal(projectId) {
   $('input-project-name').value = project ? project.name : '';
   $('input-project-note').value = project ? project.note || '' : '';
   chosenIcon = project ? project.icon || null : null;
+  checkedTypes = new Set(project ? projectTypes(project) : ['site']);
   emojiExpanded = false;
+  renderTypeGrid();
   renderEmojiGrid();
   renderLogoGrid();
   $('modal-project').hidden = false;
   $('input-project-name').focus();
+}
+
+function renderTypeGrid() {
+  const grid = $('type-grid');
+  grid.innerHTML = '';
+  const labels = { site: L.typeSite, terminal: L.typeTerminal, folder: L.typeFolder, file: L.typeFile };
+  for (const type of ITEM_TYPES) {
+    const label = document.createElement('label');
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.checked = checkedTypes.has(type);
+    checkbox.addEventListener('change', () => {
+      if (checkbox.checked) checkedTypes.add(type);
+      else checkedTypes.delete(type);
+    });
+    const span = document.createElement('span');
+    span.textContent = labels[type];
+    label.append(checkbox, span);
+    grid.appendChild(label);
+  }
 }
 
 function renderEmojiGrid() {
@@ -636,15 +755,18 @@ function saveProjectModal() {
     return;
   }
   const note = $('input-project-note').value.trim();
+  const types = ITEM_TYPES.filter((t) => checkedTypes.has(t));
+  if (!types.length) types.push('site');
   if (editingProjectId) {
     const project = projects.find((p) => p.id === editingProjectId);
     if (project) {
       project.name = name;
       project.icon = chosenIcon;
       project.note = note;
+      project.types = types;
     }
   } else {
-    projects.push({ id: uid(), name, icon: chosenIcon, note, sites: [] });
+    projects.push({ id: uid(), name, icon: chosenIcon, note, types, sites: [] });
   }
   saveProjects();
   $('modal-project').hidden = true;
@@ -653,6 +775,81 @@ function saveProjectModal() {
 }
 
 // ---- Site modal ----
+
+// ---- Item modal (terminal / folder / file) ----
+
+let itemModalType = 'terminal';
+let editingItemId = null;
+let pickedPath = '';
+
+function openItemModal(type, itemId) {
+  itemModalType = type;
+  editingItemId = itemId || null;
+  const project = currentProject();
+  const item = itemId && project ? project.sites.find((s) => s.id === itemId) : null;
+
+  const titles = {
+    terminal: item ? L.terminalModalEdit : L.terminalModalAdd,
+    folder: item ? L.folderModalEdit : L.folderModalAdd,
+    file: item ? L.fileModalEdit : L.fileModalAdd
+  };
+  $('modal-item-title').textContent = titles[type];
+  $('label-item-path').textContent = type === 'file' ? L.pathFile : L.pathFolder;
+  $('btn-pick-path').textContent = type === 'file' ? L.chooseFile : L.chooseFolder;
+  pickedPath = item ? item.path : '';
+  $('picked-path').textContent = pickedPath;
+  $('picked-path').hidden = !pickedPath;
+
+  const isTerminal = type === 'terminal';
+  $('label-item-command').hidden = !isTerminal;
+  $('input-item-command').hidden = !isTerminal;
+  $('label-item-command').textContent = L.commandLabel;
+  $('input-item-command').value = item && item.command ? item.command : '';
+  $('label-item-name').textContent = L.siteName;
+  $('input-item-name').value = item ? item.title : '';
+  $('btn-item-cancel').textContent = L.cancel;
+  $('btn-item-save').textContent = L.save;
+  $('modal-item').hidden = false;
+}
+
+async function pickItemPath() {
+  const kind = itemModalType === 'file' ? 'file' : 'folder';
+  const result = await window.api.pickPath(kind);
+  if (!result) return;
+  pickedPath = result;
+  $('picked-path').textContent = pickedPath;
+  $('picked-path').hidden = false;
+  if (!$('input-item-name').value.trim()) $('input-item-name').value = baseName(pickedPath);
+}
+
+function saveItemModal() {
+  const project = currentProject();
+  if (!project) return;
+  if (!pickedPath) {
+    pickItemPath();
+    return;
+  }
+  const title = $('input-item-name').value.trim() || baseName(pickedPath);
+  const command = itemModalType === 'terminal' ? $('input-item-command').value.trim() : '';
+  const existing = editingItemId ? project.sites.find((s) => s.id === editingItemId) : null;
+  if (existing) {
+    existing.title = title;
+    existing.path = pickedPath;
+    if (itemModalType === 'terminal') existing.command = command;
+  } else {
+    project.sites.push({
+      id: uid(),
+      type: itemModalType,
+      title,
+      path: pickedPath,
+      ...(command ? { command } : {})
+    });
+  }
+  editingItemId = null;
+  saveProjects();
+  $('modal-item').hidden = true;
+  renderProject();
+}
 
 function openSiteModal(siteId) {
   editingSiteId = typeof siteId === 'string' ? siteId : null;
@@ -686,7 +883,7 @@ async function saveSiteModal() {
     }
   }
   const duplicate = project.sites.find(
-    (s) => s.id !== editingSiteId && s.url.toLowerCase() === url.toLowerCase()
+    (s) => s.id !== editingSiteId && itemType(s) === 'site' && s.url.toLowerCase() === url.toLowerCase()
   );
   if (duplicate && !(await askConfirm(fmt(L.duplicateConfirm, { name: duplicate.title }), L.addAnyway, false))) {
     return;
@@ -942,6 +1139,7 @@ function applyTexts() {
   $('btn-delete-project').title = L.deleteProjectConfirm.split('{')[0].trim();
   $('label-project-name').textContent = L.projectName;
   $('label-project-note').textContent = L.noteLabel;
+  $('label-project-types').textContent = L.typesLabel;
   $('label-site-note').textContent = L.noteLabel;
   $('label-project-icon').textContent = L.projectIcon;
   $('label-project-logo').textContent = L.logoLabel;
@@ -1052,31 +1250,53 @@ async function init() {
   $('search-input').addEventListener('input', () => renderHome());
   $('btn-new-project').addEventListener('click', () => openProjectModal(null));
   $('empty-state').addEventListener('click', () => openProjectModal(null));
-  $('site-empty').addEventListener('click', openSiteModal);
+  $('site-empty').addEventListener('click', () => {
+    const project = currentProject();
+    if (!project) return;
+    const first = projectTypes(project)[0];
+    if (first === 'site') openSiteModal(null);
+    else openItemModal(first, null);
+  });
 
   // Project view
   $('btn-back').addEventListener('click', renderHome);
   $('btn-edit-project').addEventListener('click', () => openProjectModal(currentProjectId));
-  $('btn-delete-project').addEventListener('click', async () => {
+  $('btn-delete-project').addEventListener('click', () => {
     const project = currentProject();
     if (!project) return;
-    const ok = await askConfirm(fmt(L.deleteProjectConfirm, { name: project.name }), L.delete);
-    if (!ok) return;
+    $('delete-project-title').textContent = L.deleteProjectTitle;
+    $('delete-project-message').textContent = `${L.deleteProjectType} „${project.name}“`;
+    $('input-delete-name').value = '';
+    $('input-delete-name').placeholder = project.name;
+    $('btn-delete-cancel').textContent = L.cancel;
+    $('btn-delete-confirm').textContent = L.delete;
+    $('btn-delete-confirm').disabled = true;
+    $('modal-delete-project').hidden = false;
+    $('input-delete-name').focus();
+  });
+  $('input-delete-name').addEventListener('input', () => {
+    const project = currentProject();
+    $('btn-delete-confirm').disabled =
+      !project || $('input-delete-name').value.trim() !== project.name;
+  });
+  $('btn-delete-cancel').addEventListener('click', () => ($('modal-delete-project').hidden = true));
+  $('btn-delete-confirm').addEventListener('click', () => {
+    const project = currentProject();
+    if (!project || $('input-delete-name').value.trim() !== project.name) return;
     projects = projects.filter((p) => p.id !== project.id);
     saveProjects();
+    $('modal-delete-project').hidden = true;
     renderHome();
   });
   $('btn-open-all').addEventListener('click', () => {
     const project = currentProject();
-    if (project) window.api.openUrls(project.sites.map((s) => s.url), { newWindow: true });
+    if (project) openItems(project.sites);
   });
   $('btn-open-selected').addEventListener('click', () => {
     const project = currentProject();
     if (!project) return;
-    const urls = project.sites.filter((s) => selectedSites.has(s.id)).map((s) => s.url);
-    if (urls.length) window.api.openUrls(urls, { newWindow: true });
+    openItems(project.sites.filter((s) => selectedSites.has(s.id)));
   });
-  $('btn-add-site').addEventListener('click', openSiteModal);
 
   // Modals
   $('btn-toggle-emojis').addEventListener('click', () => {
@@ -1099,6 +1319,15 @@ async function init() {
   });
   $('btn-site-cancel').addEventListener('click', () => ($('modal-site').hidden = true));
   $('btn-site-save').addEventListener('click', saveSiteModal);
+  $('btn-pick-path').addEventListener('click', pickItemPath);
+  $('btn-item-cancel').addEventListener('click', () => ($('modal-item').hidden = true));
+  $('btn-item-save').addEventListener('click', saveItemModal);
+  $('input-item-name').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') saveItemModal();
+  });
+  $('input-item-command').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') saveItemModal();
+  });
   for (const id of ['input-site-name', 'input-site-url']) {
     $(id).addEventListener('keydown', (e) => {
       if (e.key === 'Enter') saveSiteModal();
@@ -1107,7 +1336,7 @@ async function init() {
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
       resolveConfirm(false);
-      for (const id of ['modal-project', 'modal-site', 'modal-scheme', 'modal-language', 'modal-layer', 'modal-autostart', 'modal-data', 'modal-bookmarks']) {
+      for (const id of ['modal-project', 'modal-site', 'modal-item', 'modal-delete-project', 'modal-scheme', 'modal-language', 'modal-layer', 'modal-autostart', 'modal-data', 'modal-bookmarks']) {
         $(id).hidden = true;
       }
       $('menu').hidden = true;

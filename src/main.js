@@ -527,6 +527,49 @@ ipcMain.handle('logo:pick', async () => {
   return { logos: data.logos, picked: dataUrl };
 });
 
+// ---- Workspace items: terminals, folders, files ----
+
+ipcMain.handle('path:pick', async (event, kind) => {
+  const result = await dialog.showOpenDialog(win, {
+    properties: [kind === 'folder' ? 'openDirectory' : 'openFile']
+  });
+  if (result.canceled || !result.filePaths.length) return null;
+  return result.filePaths[0];
+});
+
+function openTerminalAt(dir, command) {
+  if (isMac) {
+    const quotedDir = `'${String(dir).replace(/'/g, `'\\''`)}'`;
+    const inner = command ? `cd ${quotedDir} && ${command}` : `cd ${quotedDir}`;
+    const escaped = inner.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+    execFile('osascript', [
+      '-e', 'tell application "Terminal"',
+      '-e', 'activate',
+      '-e', `do script "${escaped}"`,
+      '-e', 'end tell'
+    ]);
+  } else if (isWin) {
+    const inner = command ? `cd /d "${dir}" && ${command}` : `cd /d "${dir}"`;
+    spawn('cmd', ['/c', 'start', '', 'cmd', '/K', inner], { detached: true }).unref();
+  }
+}
+
+ipcMain.handle('items:open', (event, items) => {
+  if (!Array.isArray(items)) return 0;
+  let opened = 0;
+  for (const item of items.slice(0, 50)) {
+    if (!item || typeof item.path !== 'string' || !item.path) continue;
+    if (item.type === 'terminal') {
+      openTerminalAt(item.path, typeof item.command === 'string' ? item.command : '');
+      opened += 1;
+    } else if (item.type === 'folder' || item.type === 'file') {
+      shell.openPath(item.path);
+      opened += 1;
+    }
+  }
+  return opened;
+});
+
 // ---- Bookmarks import (Chrome / Edge / Brave — read from their local files) ----
 
 function isValidHttpUrl(url) {
@@ -646,6 +689,11 @@ ipcMain.handle('file:exportHtml', async () => {
       const rows = project.sites
         .map((site) => {
           const siteNote = site.note ? ` <span class="note">— ${escapeHtml(site.note)}</span>` : '';
+          if (site.type && site.type !== 'site') {
+            const icons = { terminal: '⌨️', folder: '📁', file: '📄' };
+            const extra = site.type === 'terminal' && site.command ? ` · $ ${escapeHtml(site.command)}` : '';
+            return `<li>${icons[site.type] || '📄'} ${escapeHtml(site.title || site.path)} <span class="url">${escapeHtml(site.path)}${extra}</span>${siteNote}</li>`;
+          }
           return `<li><a href="${escapeHtml(site.url)}">${escapeHtml(site.title || site.url)}</a> <span class="url">${escapeHtml(site.url)}</span>${siteNote}</li>`;
         })
         .join('\n');
@@ -698,22 +746,62 @@ ipcMain.handle('file:import', async () => {
     const raw = JSON.parse(fs.readFileSync(result.filePaths[0], 'utf8'));
     if (raw.app !== 'my-desktop-order' || !Array.isArray(raw.projects)) return { error: 'format' };
 
+    // Terminal entries can contain shell commands — warn before importing them
+    const terminalCount = raw.projects.reduce(
+      (n, p) => n + ((Array.isArray(p.sites) ? p.sites : []).filter((s) => s && s.type === 'terminal').length),
+      0
+    );
+    let includeItems = true;
+    if (terminalCount > 0) {
+      const de = (data.settings.language || app.getLocale().toLowerCase()).startsWith('de');
+      const { response } = await dialog.showMessageBox(win, {
+        type: 'warning',
+        buttons: de
+          ? ['Alles importieren', 'Ohne Terminal-Einträge', 'Abbrechen']
+          : ['Import everything', 'Without terminal entries', 'Cancel'],
+        defaultId: 1,
+        cancelId: 2,
+        message: de
+          ? `Diese Datei enthält ${terminalCount} Terminal-Einträge, die Befehle auf deinem Computer ausführen können. Importiere sie nur, wenn du der Quelle vertraust.`
+          : `This file contains ${terminalCount} terminal entries that can run commands on your computer. Only import them if you trust the source.`
+      });
+      if (response === 2) return null;
+      includeItems = response === 0;
+    }
+
     const newId = () => Math.random().toString(36).slice(2) + Date.now().toString(36);
     let imported = 0;
     for (const project of raw.projects) {
       if (!project || typeof project.name !== 'string' || !project.name.trim()) continue;
-      const sites = (Array.isArray(project.sites) ? project.sites : [])
-        .filter((s) => s && isValidHttpUrl(s.url))
-        .map((s) => ({
+      const rawSites = Array.isArray(project.sites) ? project.sites : [];
+      const sites = [];
+      for (const s of rawSites) {
+        if (!s) continue;
+        const base = {
           id: newId(),
           title: typeof s.title === 'string' ? s.title.slice(0, 60) : '',
-          url: s.url,
           ...(typeof s.note === 'string' && s.note ? { note: s.note.slice(0, 500) } : {})
-        }));
+        };
+        const type = typeof s.type === 'string' ? s.type : 'site';
+        if (type === 'site' && isValidHttpUrl(s.url)) {
+          sites.push({ ...base, url: s.url });
+        } else if (['terminal', 'folder', 'file'].includes(type) && typeof s.path === 'string' && s.path) {
+          if (!includeItems && type === 'terminal') continue;
+          sites.push({
+            ...base,
+            type,
+            path: s.path.slice(0, 1000),
+            ...(type === 'terminal' && typeof s.command === 'string' && s.command
+              ? { command: s.command.slice(0, 500) }
+              : {})
+          });
+        }
+      }
       data.projects.push({
         id: newId(),
         name: project.name.slice(0, 40),
         icon: typeof project.icon === 'string' ? project.icon : null,
+        ...(Array.isArray(project.types) ? { types: project.types.filter((t) => typeof t === 'string').slice(0, 4) } : {}),
         ...(typeof project.note === 'string' && project.note ? { note: project.note.slice(0, 1000) } : {}),
         sites
       });
