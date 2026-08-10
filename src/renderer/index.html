@@ -52,6 +52,7 @@
       </div>
 
       <p id="project-note" class="project-note" hidden></p>
+      <div id="group-chips" class="group-chips" hidden></div>
       <div id="site-list" class="site-list"></div>
       <div id="site-empty" class="empty-state" hidden>
         <div class="empty-icon">🔗</div>
@@ -135,6 +136,14 @@
           <button id="btn-item-cancel" class="ghost"></button>
           <button id="btn-item-save" class="primary"></button>
         </div>
+      </div>
+    </div>
+
+    <!-- Modal: pick group color for an item -->
+    <div id="modal-color" class="overlay" hidden>
+      <div class="modal">
+        <h3 id="modal-color-title"></h3>
+        <div id="color-grid" class="color-grid"></div>
       </div>
     </div>
 

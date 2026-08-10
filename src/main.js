@@ -780,7 +780,8 @@ ipcMain.handle('file:import', async () => {
         const base = {
           id: newId(),
           title: typeof s.title === 'string' ? s.title.slice(0, 60) : '',
-          ...(typeof s.note === 'string' && s.note ? { note: s.note.slice(0, 500) } : {})
+          ...(typeof s.note === 'string' && s.note ? { note: s.note.slice(0, 500) } : {}),
+          ...(typeof s.color === 'string' && s.color ? { color: s.color.slice(0, 20) } : {})
         };
         const type = typeof s.type === 'string' ? s.type : 'site';
         if (type === 'site' && isValidHttpUrl(s.url)) {

@@ -97,6 +97,9 @@ const I18N = {
     deleteProjectTitle: 'Projekt löschen',
     deleteProjectType: 'Zum endgültigen Löschen tippe den Projektnamen ein:',
     noteLabel: 'Notiz (optional)',
+    groupTitle: 'Gruppe (Farbe)',
+    groupDot: 'Gruppenfarbe ändern',
+    noGroup: 'Keine Gruppe',
     sites: 'Seiten',
     site: 'Seite',
     lock: 'Position fixieren',
@@ -190,6 +193,9 @@ const I18N = {
     deleteProjectTitle: 'Delete project',
     deleteProjectType: 'To delete permanently, type the project name:',
     noteLabel: 'Note (optional)',
+    groupTitle: 'Group (color)',
+    groupDot: 'Change group color',
+    noGroup: 'No group',
     sites: 'sites',
     site: 'site',
     lock: 'Lock position',
@@ -255,6 +261,12 @@ const projectTypes = (project) =>
     : ['site'];
 const baseName = (p) => String(p).replace(/[\\/]+$/, '').split(/[\\/]/).pop() || p;
 let checkedTypes = new Set(['site']);
+
+// ---- Group colors (metallic, from the scheme palette; graphite = no group) ----
+const colorGradient = (id) => {
+  const scheme = SCHEMES.find((s) => s.id === id) || SCHEMES.find((s) => s.id === 'graphite');
+  return `linear-gradient(135deg, ${scheme.g1}, ${scheme.g2})`;
+};
 
 const uid = () => (crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random()));
 
@@ -490,6 +502,40 @@ function renderProject() {
   projectNote.textContent = project.note || '';
   projectNote.hidden = !project.note;
 
+  // Group chips: one per color used by 2+ items; click toggles group selection
+  const chips = $('group-chips');
+  chips.innerHTML = '';
+  const groups = new Map();
+  for (const s of project.sites) {
+    if (!s.color) continue;
+    if (!groups.has(s.color)) groups.set(s.color, []);
+    groups.get(s.color).push(s.id);
+  }
+  for (const [color, ids] of groups) {
+    if (ids.length < 2) continue;
+    const allSelected = ids.every((id) => selectedSites.has(id));
+    const chip = document.createElement('button');
+    chip.type = 'button';
+    chip.className = 'group-chip';
+    if (allSelected) chip.classList.add('active');
+
+    const dot = document.createElement('span');
+    dot.className = 'chip-dot';
+    dot.style.background = colorGradient(color);
+
+    const count = document.createElement('span');
+    count.textContent = String(ids.length);
+
+    chip.append(dot, count);
+    chip.addEventListener('click', () => {
+      if (allSelected) ids.forEach((id) => selectedSites.delete(id));
+      else ids.forEach((id) => selectedSites.add(id));
+      renderProject();
+    });
+    chips.appendChild(chip);
+  }
+  chips.hidden = chips.children.length === 0;
+
   const list = $('site-list');
   list.innerHTML = '';
   $('site-empty').hidden = project.sites.length > 0;
@@ -562,6 +608,13 @@ function renderProject() {
       else window.api.openItems([site]);
     });
 
+    const colorDot = document.createElement('button');
+    colorDot.type = 'button';
+    colorDot.className = 'color-dot';
+    colorDot.title = L.groupDot;
+    colorDot.style.background = colorGradient(site.color);
+    colorDot.addEventListener('click', () => openColorModal(site.id));
+
     const edit = document.createElement('button');
     edit.className = 'icon-btn site-action';
     edit.textContent = '✎';
@@ -613,7 +666,7 @@ function renderProject() {
       renderProject();
     });
 
-    row.append(checkbox, favicon, info, edit, remove);
+    row.append(checkbox, favicon, info, colorDot, edit, remove);
     list.appendChild(row);
   }
 
@@ -775,6 +828,36 @@ function saveProjectModal() {
 }
 
 // ---- Site modal ----
+
+// ---- Group color picker ----
+
+function openColorModal(itemId) {
+  const project = currentProject();
+  const item = project ? project.sites.find((s) => s.id === itemId) : null;
+  if (!item) return;
+
+  $('modal-color-title').textContent = L.groupTitle;
+  const grid = $('color-grid');
+  grid.innerHTML = '';
+  const options = [null, ...SCHEMES.filter((s) => s.id !== 'graphite').map((s) => s.id)];
+  for (const color of options) {
+    const swatch = document.createElement('button');
+    swatch.type = 'button';
+    swatch.className = 'color-swatch';
+    swatch.style.background = colorGradient(color);
+    swatch.title = color ? '' : L.noGroup;
+    if ((item.color || null) === color) swatch.classList.add('selected');
+    swatch.addEventListener('click', () => {
+      if (color) item.color = color;
+      else delete item.color;
+      saveProjects();
+      $('modal-color').hidden = true;
+      renderProject();
+    });
+    grid.appendChild(swatch);
+  }
+  $('modal-color').hidden = false;
+}
 
 // ---- Item modal (terminal / folder / file) ----
 
@@ -1336,7 +1419,7 @@ async function init() {
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
       resolveConfirm(false);
-      for (const id of ['modal-project', 'modal-site', 'modal-item', 'modal-delete-project', 'modal-scheme', 'modal-language', 'modal-layer', 'modal-autostart', 'modal-data', 'modal-bookmarks']) {
+      for (const id of ['modal-project', 'modal-site', 'modal-item', 'modal-color', 'modal-delete-project', 'modal-scheme', 'modal-language', 'modal-layer', 'modal-autostart', 'modal-data', 'modal-bookmarks']) {
         $(id).hidden = true;
       }
       $('menu').hidden = true;
