@@ -102,7 +102,7 @@ const I18N = {
     groupDot: 'Gruppenfarbe ändern',
     noGroup: 'Keine Gruppe',
     groupName: 'Name (optional)',
-    groupHint: 'Klicke auf einen Farbkreis, um die Webseite dieser Gruppe zuzuordnen. Unten gibst du der Gruppe mit ✎ einen Namen.',
+    groupHint: 'Klicke auf einen Farbkreis, um die Webseite dieser Gruppe zuzuordnen. Mit ✎ gibst du einer Gruppe einen Namen.',
     groupRename: 'Gruppe benennen',
     sites: 'Seiten',
     site: 'Seite',
@@ -202,7 +202,7 @@ const I18N = {
     groupDot: 'Change group color',
     noGroup: 'No group',
     groupName: 'Name (optional)',
-    groupHint: 'Click a color circle to add the website to that group. Below, use ✎ to give the group a name.',
+    groupHint: 'Click a color circle to add the website to that group. Use ✎ to give a group a name.',
     groupRename: 'Name this group',
     sites: 'sites',
     site: 'site',
@@ -866,85 +866,118 @@ function openColorModal(itemId) {
   $('modal-color-title').textContent = L.groupTitle;
   $('color-hint').textContent = L.groupHint;
   const grid = $('color-grid');
-  grid.innerHTML = '';
-  const options = [null, ...SCHEMES.filter((s) => s.id !== 'graphite').map((s) => s.id)];
-  for (const color of options) {
-    const swatch = document.createElement('button');
-    swatch.type = 'button';
-    swatch.className = 'color-swatch';
-    swatch.style.background = colorGradient(color);
-    swatch.title = color ? (project.groupNames && project.groupNames[color]) || '' : L.noGroup;
-    if ((item.color || null) === color) swatch.classList.add('selected');
-    swatch.addEventListener('click', () => {
-      if (color) item.color = color;
-      else delete item.color;
-      saveProjects();
-      $('modal-color').hidden = true;
-      renderProject();
-    });
-    grid.appendChild(swatch);
-  }
-
-  // Name row for the item's current group: dot + name, ✎ swaps in an inline input
   const nameRow = $('color-name-row');
-  nameRow.innerHTML = '';
-  nameRow.hidden = !item.color;
-  if (item.color) {
-    const color = item.color;
+  const divider = $('color-divider');
+  grid.innerHTML = '';
+  const groupName = (color) => (project.groupNames && project.groupNames[color]) || '';
+  const options = [null, ...SCHEMES.filter((s) => s.id !== 'graphite').map((s) => s.id)];
+  const swatches = new Map();
+
+  const updateSelected = () => {
+    for (const [color, swatch] of swatches) {
+      swatch.classList.toggle('selected', (item.color || null) === color);
+    }
+  };
+
+  const makeDot = (color) => {
     const dot = document.createElement('span');
     dot.className = 'color-swatch static';
     dot.style.background = colorGradient(color);
+    return dot;
+  };
+
+  // Row below the divider: shows one group (dot + name), ✎ swaps in an input
+  const showNameRow = (color) => {
+    nameRow.innerHTML = '';
+    nameRow.hidden = !color;
+    divider.hidden = !color;
+    if (!color) return;
 
     const nameText = document.createElement('span');
     nameText.className = 'color-row-name';
-    const currentName = () => (project.groupNames && project.groupNames[color]) || '';
-    const showName = () => {
-      nameText.textContent = currentName() || L.groupName;
-      nameText.classList.toggle('placeholder', !currentName());
-    };
-    showName();
+    nameText.textContent = groupName(color) || L.groupName;
+    nameText.classList.toggle('placeholder', !groupName(color));
 
     const editBtn = document.createElement('button');
     editBtn.type = 'button';
     editBtn.className = 'icon-btn color-edit';
     editBtn.textContent = '✎';
     editBtn.title = L.groupRename;
+    editBtn.addEventListener('click', () => editNameRow(color));
+    nameText.addEventListener('click', () => editNameRow(color));
 
-    const startEdit = () => {
-      const input = document.createElement('input');
-      input.type = 'text';
-      input.className = 'color-name-input';
-      input.maxLength = 30;
-      input.placeholder = L.groupName;
-      input.value = currentName();
-      nameRow.replaceChild(input, nameText);
-      editBtn.hidden = true;
-      input.focus();
-      input.addEventListener('blur', () => {
-        const name = input.value.trim();
-        if (!project.groupNames) project.groupNames = {};
-        if (name) project.groupNames[color] = name;
-        else delete project.groupNames[color];
-        saveProjects();
-        showName();
-        nameRow.replaceChild(nameText, input);
-        editBtn.hidden = false;
-        renderProject();
-      });
-      input.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') input.blur();
-        if (e.key === 'Escape') {
-          e.stopPropagation();
-          input.value = currentName();
-          input.blur();
-        }
-      });
-    };
-    editBtn.addEventListener('click', startEdit);
-    nameText.addEventListener('click', startEdit);
+    nameRow.append(makeDot(color), nameText, editBtn);
+  };
 
-    nameRow.append(dot, nameText, editBtn);
+  const editNameRow = (color) => {
+    nameRow.innerHTML = '';
+    nameRow.hidden = false;
+    divider.hidden = false;
+
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.className = 'color-name-input';
+    input.maxLength = 30;
+    input.placeholder = L.groupName;
+    input.value = groupName(color);
+    input.addEventListener('blur', () => {
+      const name = input.value.trim();
+      if (!project.groupNames) project.groupNames = {};
+      if (name) project.groupNames[color] = name;
+      else delete project.groupNames[color];
+      saveProjects();
+      const swatch = swatches.get(color);
+      if (swatch) swatch.title = name;
+      showNameRow(color);
+      renderProject();
+    });
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') input.blur();
+      if (e.key === 'Escape') {
+        e.stopPropagation();
+        input.value = groupName(color);
+        input.blur();
+      }
+    });
+
+    nameRow.append(makeDot(color), input);
+    input.focus();
+  };
+
+  // Grid: color circle plus a small pencil per color; picking keeps the modal open
+  for (const color of options) {
+    const cell = document.createElement('div');
+    cell.className = 'color-cell';
+
+    const swatch = document.createElement('button');
+    swatch.type = 'button';
+    swatch.className = 'color-swatch';
+    swatch.style.background = colorGradient(color);
+    swatch.title = color ? groupName(color) : L.noGroup;
+    swatch.addEventListener('click', () => {
+      if (color) item.color = color;
+      else delete item.color;
+      saveProjects();
+      updateSelected();
+      showNameRow(color);
+      renderProject();
+    });
+    swatches.set(color, swatch);
+    cell.appendChild(swatch);
+
+    if (color) {
+      const pencil = document.createElement('button');
+      pencil.type = 'button';
+      pencil.className = 'icon-btn color-edit-mini';
+      pencil.textContent = '✎';
+      pencil.title = L.groupRename;
+      pencil.addEventListener('click', () => editNameRow(color));
+      cell.appendChild(pencil);
+    }
+    grid.appendChild(cell);
   }
+  updateSelected();
+  showNameRow(item.color || null);
   $('modal-color').hidden = false;
 }
 
