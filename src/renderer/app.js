@@ -102,7 +102,7 @@ const I18N = {
     groupDot: 'Gruppenfarbe ändern',
     noGroup: 'Keine Gruppe',
     groupName: 'Name (optional)',
-    groupHint: 'Klicke auf einen Farbkreis, um die Webseite dieser Gruppe zuzuordnen. Mit ✎ gibst du einer Gruppe einen Namen.',
+    groupHint: 'Klicke auf einen Farbkreis, um die Webseite dieser Gruppe zuzuordnen. Unten gibst du der Gruppe mit ✎ einen Namen.',
     groupRename: 'Gruppe benennen',
     sites: 'Seiten',
     site: 'Seite',
@@ -202,7 +202,7 @@ const I18N = {
     groupDot: 'Change group color',
     noGroup: 'No group',
     groupName: 'Name (optional)',
-    groupHint: 'Click a color circle to add the website to that group. Use ✎ to give a group a name.',
+    groupHint: 'Click a color circle to add the website to that group. Below, use ✎ to give the group a name.',
     groupRename: 'Name this group',
     sites: 'sites',
     site: 'site',
@@ -869,14 +869,11 @@ function openColorModal(itemId) {
   grid.innerHTML = '';
   const options = [null, ...SCHEMES.filter((s) => s.id !== 'graphite').map((s) => s.id)];
   for (const color of options) {
-    const row = document.createElement('div');
-    row.className = 'color-row';
-
     const swatch = document.createElement('button');
     swatch.type = 'button';
     swatch.className = 'color-swatch';
     swatch.style.background = colorGradient(color);
-    swatch.title = color ? '' : L.noGroup;
+    swatch.title = color ? (project.groupNames && project.groupNames[color]) || '' : L.noGroup;
     if ((item.color || null) === color) swatch.classList.add('selected');
     swatch.addEventListener('click', () => {
       if (color) item.color = color;
@@ -885,62 +882,68 @@ function openColorModal(itemId) {
       $('modal-color').hidden = true;
       renderProject();
     });
-    row.appendChild(swatch);
+    grid.appendChild(swatch);
+  }
 
-    if (color) {
-      // Group name for this color — shared by all items of the project.
-      // Shown as plain text; the ✎ button swaps it for an inline input.
-      const nameText = document.createElement('span');
-      nameText.className = 'color-row-name';
-      nameText.textContent = (project.groupNames && project.groupNames[color]) || '';
+  // Name row for the item's current group: dot + name, ✎ swaps in an inline input
+  const nameRow = $('color-name-row');
+  nameRow.innerHTML = '';
+  nameRow.hidden = !item.color;
+  if (item.color) {
+    const color = item.color;
+    const dot = document.createElement('span');
+    dot.className = 'color-swatch static';
+    dot.style.background = colorGradient(color);
 
-      const editBtn = document.createElement('button');
-      editBtn.type = 'button';
-      editBtn.className = 'icon-btn color-edit';
-      editBtn.textContent = '✎';
-      editBtn.title = L.groupRename;
+    const nameText = document.createElement('span');
+    nameText.className = 'color-row-name';
+    const currentName = () => (project.groupNames && project.groupNames[color]) || '';
+    const showName = () => {
+      nameText.textContent = currentName() || L.groupName;
+      nameText.classList.toggle('placeholder', !currentName());
+    };
+    showName();
 
-      const startEdit = () => {
-        const input = document.createElement('input');
-        input.type = 'text';
-        input.className = 'color-name-input';
-        input.maxLength = 30;
-        input.placeholder = L.groupName;
-        input.value = (project.groupNames && project.groupNames[color]) || '';
-        row.replaceChild(input, nameText);
-        editBtn.hidden = true;
-        input.focus();
-        input.addEventListener('blur', () => {
-          const name = input.value.trim();
-          if (!project.groupNames) project.groupNames = {};
-          if (name) project.groupNames[color] = name;
-          else delete project.groupNames[color];
-          saveProjects();
-          nameText.textContent = name;
-          row.replaceChild(nameText, input);
-          editBtn.hidden = false;
-          renderProject();
-        });
-        input.addEventListener('keydown', (e) => {
-          if (e.key === 'Enter') input.blur();
-          if (e.key === 'Escape') {
-            e.stopPropagation();
-            input.value = (project.groupNames && project.groupNames[color]) || '';
-            input.blur();
-          }
-        });
-      };
-      editBtn.addEventListener('click', startEdit);
-      nameText.addEventListener('click', startEdit);
+    const editBtn = document.createElement('button');
+    editBtn.type = 'button';
+    editBtn.className = 'icon-btn color-edit';
+    editBtn.textContent = '✎';
+    editBtn.title = L.groupRename;
 
-      row.append(nameText, editBtn);
-    } else {
-      const label = document.createElement('span');
-      label.className = 'color-row-label';
-      label.textContent = L.noGroup;
-      row.appendChild(label);
-    }
-    grid.appendChild(row);
+    const startEdit = () => {
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.className = 'color-name-input';
+      input.maxLength = 30;
+      input.placeholder = L.groupName;
+      input.value = currentName();
+      nameRow.replaceChild(input, nameText);
+      editBtn.hidden = true;
+      input.focus();
+      input.addEventListener('blur', () => {
+        const name = input.value.trim();
+        if (!project.groupNames) project.groupNames = {};
+        if (name) project.groupNames[color] = name;
+        else delete project.groupNames[color];
+        saveProjects();
+        showName();
+        nameRow.replaceChild(nameText, input);
+        editBtn.hidden = false;
+        renderProject();
+      });
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') input.blur();
+        if (e.key === 'Escape') {
+          e.stopPropagation();
+          input.value = currentName();
+          input.blur();
+        }
+      });
+    };
+    editBtn.addEventListener('click', startEdit);
+    nameText.addEventListener('click', startEdit);
+
+    nameRow.append(dot, nameText, editBtn);
   }
   $('modal-color').hidden = false;
 }
