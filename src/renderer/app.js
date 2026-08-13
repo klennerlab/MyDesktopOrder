@@ -57,7 +57,6 @@ const I18N = {
     emptyProjects: 'Erstelle dein erstes Projekt!',
     searchPlaceholder: '🔍 Suchen…',
     searchProject: '🔍 Im Projekt suchen…',
-    menuSearch: '🔍 Suchen',
     searchEmpty: 'Nichts gefunden.',
     projectTag: 'Projekt',
     noIcon: 'Ohne Icon – der Titel füllt das Feld',
@@ -156,7 +155,6 @@ const I18N = {
     emptyProjects: 'Create your first project!',
     searchPlaceholder: '🔍 Search…',
     searchProject: '🔍 Search in this project…',
-    menuSearch: '🔍 Search',
     searchEmpty: 'No results.',
     projectTag: 'Project',
     noIcon: 'No icon – the title fills the tile',
@@ -411,9 +409,7 @@ function renderHome() {
 function openProject(id) {
   currentProjectId = id;
   selectedSites.clear();
-  const search = $('project-search');
-  search.value = '';
-  search.hidden = true;
+  $('project-search').value = '';
   renderProject();
 }
 
@@ -553,7 +549,8 @@ function renderProject() {
   chips.hidden = chips.children.length === 0;
 
   const searchEl = $('project-search');
-  const projectQuery = searchEl.hidden ? '' : searchEl.value.trim().toLowerCase();
+  searchEl.hidden = project.sites.length === 0;
+  const projectQuery = searchEl.value.trim().toLowerCase();
   const matchesQuery = (s) =>
     [s.title, s.url, s.path, s.note].some((t) => (t || '').toLowerCase().includes(projectQuery));
   const visibleSites = projectQuery ? project.sites.filter(matchesQuery) : project.sites;
@@ -1242,7 +1239,6 @@ function importSelectedBookmarks() {
 }
 
 function renderMenu() {
-  $('menu-search').textContent = L.menuSearch;
   $('menu-language').textContent = L.language;
   $('menu-scheme').textContent = L.schemeMenu;
   $('menu-ontop').textContent = `${L.layerMenu} · ${settings.alwaysOnTop ? L.layerShortTop : L.layerShortNormal}`;
@@ -1331,16 +1327,6 @@ async function init() {
   });
 
   // Menu
-  $('menu-search').addEventListener('click', () => {
-    $('menu').hidden = true;
-    if (currentProjectId) {
-      const el = $('project-search');
-      el.hidden = false;
-      el.focus();
-    } else {
-      $('search-input').focus();
-    }
-  });
   $('menu-language').addEventListener('click', () => {
     openLanguageModal();
     $('menu').hidden = true;
@@ -1403,11 +1389,9 @@ async function init() {
   $('search-input').addEventListener('input', () => renderHome());
   $('project-search').addEventListener('input', () => renderProject());
   $('project-search').addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') {
+    if (e.key === 'Escape' && $('project-search').value) {
       e.stopPropagation();
-      const el = $('project-search');
-      el.value = '';
-      el.hidden = true;
+      $('project-search').value = '';
       renderProject();
     }
   });
@@ -1507,9 +1491,8 @@ async function init() {
         $('search-input').value = '';
         if (!currentProjectId) renderHome();
       }
-      if (currentProjectId && !$('project-search').hidden) {
+      if (currentProjectId && $('project-search').value) {
         $('project-search').value = '';
-        $('project-search').hidden = true;
         renderProject();
       }
     }
