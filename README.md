@@ -38,11 +38,7 @@ Lade die neueste Version von der [Releases-Seite](https://github.com/klennerlab/
 | Windows | `project-launcher-setup-windows.exe` |
 | Linux | `project-launcher-linux-x64.AppImage` |
 
-> **Hinweis macOS:** Beim ersten Start meldet macOS, die App sei „beschädigt“. Die App ist **nicht** beschädigt – sie ist nur nicht bei Apple notariell beglaubigt (das kostet Geld; der Code ist offen einsehbar). Einmalig freischalten: Terminal öffnen (Cmd + Leertaste, „Terminal“ tippen) und diesen Befehl ausführen:
-> ```
-> xattr -d com.apple.quarantine "/Applications/Project Launcher.app"
-> ```
-> Danach startet die App ganz normal.
+> **Hinweis macOS:** Die App ist signiert und von Apple notariell beglaubigt (seit v2.0.1). Beim ersten Start fragt macOS nur kurz, ob du die aus dem Internet geladene App öffnen möchtest – auf „Öffnen“ klicken, fertig.
 >
 > **Hinweis Windows:** Beim ersten Start erscheint eventuell der SmartScreen-Hinweis. Klicke auf **„Weitere Informationen“ → „Trotzdem ausführen“**.
 >
@@ -99,11 +95,7 @@ Download the latest version from the [Releases page](https://github.com/klennerl
 | Windows | `project-launcher-setup-windows.exe` |
 | Linux | `project-launcher-linux-x64.AppImage` |
 
-> **macOS note:** On first launch macOS will say the app is “damaged”. The app is **not** damaged – it is simply not notarized by Apple (that costs money; the code is openly available). Unlock it once: open Terminal (Cmd + Space, type “Terminal”) and run this command:
-> ```
-> xattr -d com.apple.quarantine "/Applications/Project Launcher.app"
-> ```
-> After that the app opens normally.
+> **macOS note:** The app is signed and notarized by Apple (since v2.0.1). On first launch macOS just briefly asks if you want to open an app downloaded from the internet – click “Open” and you are done.
 >
 > **Windows note:** SmartScreen may warn on first launch. Click **“More info” → “Run anyway”**.
 >
