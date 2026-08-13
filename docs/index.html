@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>My Desktop Order – Download</title>
-  <meta name="description" content="Ein Projekt-Kästchen für deinen Desktop – organisiere Webseiten in Projekten und öffne sie mit einem Klick. Kostenlos für macOS, Windows und Linux." />
+  <title>Project Launcher – Download</title>
+  <meta name="description" content="Öffne alles, was du für ein Projekt brauchst, mit einem Klick: Webseiten, Terminals, Ordner und Dateien. Kostenlos für macOS, Windows und Linux." />
   <link rel="icon" href="icon.png" />
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -69,13 +69,13 @@
   </style>
 </head>
 <body>
-  <img class="icon" src="icon.png" alt="My Desktop Order" />
-  <h1>My Desktop Order</h1>
-  <p class="tagline" data-de="Dein Projekt-Kästchen für den Desktop: Webseiten in Projekten organisieren und mit einem Klick gesammelt öffnen – in einem frischen Browser-Fenster."
-     data-en="Your project box for the desktop: organize websites into projects and open them together with one click – in a fresh browser window.">
+  <img class="icon" src="icon.png" alt="Project Launcher" />
+  <h1>Project Launcher</h1>
+  <p class="tagline" data-de="Öffne alles, was du für ein Projekt brauchst, mit einem Klick.<br />Webseiten · Terminals · Ordner · Dateien"
+     data-en="Open everything you need for a project in one click.<br />Websites · Terminals · Folders · Files">
   </p>
-  <p class="features" data-de="🗂️ Projekte mit Emoji oder eigenem Logo · 🚀 Alle oder ausgewählte Seiten öffnen · 🎨 10 Farbschemata · 📍 Auf dem Desktop fixierbar · 🌍 Deutsch &amp; Englisch · 💯 Kostenlos &amp; Open Source"
-     data-en="🗂️ Projects with emoji or your own logo · 🚀 Open all or selected sites · 🎨 10 color schemes · 📍 Pin it to your desktop · 🌍 German &amp; English · 💯 Free &amp; open source">
+  <p class="features" data-de="🗂️ Projekte mit Emoji oder eigenem Logo · 🚀 Ganzen Arbeitsplatz mit einem Klick starten · 🏷️ Benennbare Farbgruppen · 🎨 12 Farbschemata · 📍 Auf dem Desktop fixierbar · 🌍 Deutsch &amp; Englisch · 💯 Kostenlos &amp; Open Source"
+     data-en="🗂️ Projects with emoji or your own logo · 🚀 Launch your whole workspace in one click · 🏷️ Nameable color groups · 🎨 12 color schemes · 📍 Pin it to your desktop · 🌍 German &amp; English · 💯 Free &amp; open source">
   </p>
 
   <div class="buttons" id="buttons"></div>
@@ -85,17 +85,17 @@
   <footer>
     <span data-de="Kostenlos · Open Source (MIT) · Keine Datensammlung"
           data-en="Free · Open source (MIT) · No data collection"></span><br />
-    <a href="https://github.com/klennerlab/MyDesktopOrder">GitHub</a> ·
-    <a href="https://github.com/klennerlab/MyDesktopOrder/releases" data-de="Alle Versionen" data-en="All releases"></a>
+    <a href="https://github.com/klennerlab/project-launcher">GitHub</a> ·
+    <a href="https://github.com/klennerlab/project-launcher/releases" data-de="Alle Versionen" data-en="All releases"></a>
   </footer>
 
   <script>
-    const BASE = 'https://github.com/klennerlab/MyDesktopOrder/releases/latest/download/';
+    const BASE = 'https://github.com/klennerlab/project-launcher/releases/latest/download/';
     const DL = {
-      macArm: BASE + 'my-desktop-order-mac-arm64.dmg',
-      macIntel: BASE + 'my-desktop-order-mac-x64.dmg',
-      win: BASE + 'my-desktop-order-setup-windows.exe',
-      linux: BASE + 'my-desktop-order-linux-x64.AppImage'
+      macArm: BASE + 'project-launcher-mac-arm64.dmg',
+      macIntel: BASE + 'project-launcher-mac-x64.dmg',
+      win: BASE + 'project-launcher-setup-windows.exe',
+      linux: BASE + 'project-launcher-linux-x64.AppImage'
     };
 
     const de = navigator.language.toLowerCase().startsWith('de');

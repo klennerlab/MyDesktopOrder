@@ -1,12 +1,14 @@
-# My Desktop Order 🗂️
+# Project Launcher 🚀
 
 **Deutsch** | [English below ⬇️](#english)
 
-**⬇️ Download-Seite: https://klennerlab.github.io/MyDesktopOrder/**
+**⬇️ Download-Seite: https://klennerlab.github.io/project-launcher/**
 
-Ein kleines Projekt-Kästchen für deinen Desktop – für **macOS**, **Windows** und **Linux**.
+Öffne alles, was du für ein Projekt brauchst, mit einem Klick. **Webseiten · Terminals · Ordner · Dateien** – für **macOS**, **Windows** und **Linux**.
 
-Organisiere deine Webseiten in Projekten (z. B. „Poloflow“) und öffne sie mit einem Klick – alle auf einmal oder nur die, die du gerade brauchst. Nie wieder 20 offene Tabs, die du nicht schließen willst!
+Organisiere deine Projekte (z. B. „Poloflow“) als kleine Kästchen auf dem Desktop und starte deinen ganzen Arbeitsplatz mit einem Klick – alle Webseiten, Terminals, Ordner und Dateien auf einmal oder nur die, die du gerade brauchst.
+
+*(Früher bekannt als „My Desktop Order“ – bestehende Daten werden beim Update automatisch übernommen.)*
 
 ## Funktionen
 
@@ -27,14 +29,14 @@ Organisiere deine Webseiten in Projekten (z. B. „Poloflow“) und öffne sie m
 
 ## Installation
 
-Lade die neueste Version von der [Releases-Seite](https://github.com/klennerlab/MyDesktopOrder/releases) herunter:
+Lade die neueste Version von der [Releases-Seite](https://github.com/klennerlab/project-launcher/releases) herunter:
 
 | System | Datei |
 |---|---|
-| macOS (Apple Silicon, M1–M4) | `My-Desktop-Order-…-arm64.dmg` |
-| macOS (Intel) | `My-Desktop-Order-…-x64.dmg` |
-| Windows | `My-Desktop-Order-Setup-….exe` |
-| Linux | `my-desktop-order-linux-x64.AppImage` |
+| macOS (Apple Silicon, M1–M4) | `project-launcher-mac-arm64.dmg` |
+| macOS (Intel) | `project-launcher-mac-x64.dmg` |
+| Windows | `project-launcher-setup-windows.exe` |
+| Linux | `project-launcher-linux-x64.AppImage` |
 
 > **Hinweis macOS:** Die App ist nicht bei Apple notariell beglaubigt (das kostet Geld). Beim ersten Start: **Rechtsklick auf die App → „Öffnen“ → „Öffnen“**. Falls macOS die App weiterhin blockiert: Systemeinstellungen → Datenschutz & Sicherheit → „Dennoch öffnen“.
 >
@@ -45,8 +47,8 @@ Lade die neueste Version von der [Releases-Seite](https://github.com/klennerlab/
 ## Aus dem Quellcode starten
 
 ```bash
-git clone https://github.com/klennerlab/MyDesktopOrder.git
-cd MyDesktopOrder
+git clone https://github.com/klennerlab/project-launcher.git
+cd project-launcher
 npm install
 npm start
 ```
@@ -59,9 +61,11 @@ Installationspakete selbst bauen: `npm run dist`
 
 # English
 
-A little project box for your desktop – for **macOS**, **Windows** and **Linux**.
+Open everything you need for a project in one click. **Websites · Terminals · Folders · Files** – for **macOS**, **Windows** and **Linux**.
 
-Organize your websites into projects (e.g. “Poloflow”) and open them with one click – all at once, or just the ones you need right now. No more 20 open tabs you don’t dare to close!
+Organize your projects (e.g. “Poloflow”) as little boxes on your desktop and launch your whole workspace with one click – all websites, terminals, folders and files at once, or just the ones you need right now.
+
+*(Formerly known as “My Desktop Order” – existing data is adopted automatically when you update.)*
 
 ## Features
 
@@ -82,14 +86,14 @@ Organize your websites into projects (e.g. “Poloflow”) and open them with on
 
 ## Installation
 
-Download the latest version from the [Releases page](https://github.com/klennerlab/MyDesktopOrder/releases):
+Download the latest version from the [Releases page](https://github.com/klennerlab/project-launcher/releases):
 
 | System | File |
 |---|---|
-| macOS (Apple Silicon, M1–M4) | `My-Desktop-Order-…-arm64.dmg` |
-| macOS (Intel) | `My-Desktop-Order-…-x64.dmg` |
-| Windows | `My-Desktop-Order-Setup-….exe` |
-| Linux | `my-desktop-order-linux-x64.AppImage` |
+| macOS (Apple Silicon, M1–M4) | `project-launcher-mac-arm64.dmg` |
+| macOS (Intel) | `project-launcher-mac-x64.dmg` |
+| Windows | `project-launcher-setup-windows.exe` |
+| Linux | `project-launcher-linux-x64.AppImage` |
 
 > **macOS note:** The app is not notarized by Apple (that costs money). On first launch: **right-click the app → “Open” → “Open”**. If macOS still blocks it: System Settings → Privacy & Security → “Open Anyway”.
 >
@@ -100,8 +104,8 @@ Download the latest version from the [Releases page](https://github.com/klennerl
 ## Run from source
 
 ```bash
-git clone https://github.com/klennerlab/MyDesktopOrder.git
-cd MyDesktopOrder
+git clone https://github.com/klennerlab/project-launcher.git
+cd project-launcher
 npm install
 npm start
 ```

@@ -1,6 +1,6 @@
 const $ = (id) => document.getElementById(id);
 
-const GITHUB_URL = 'https://github.com/klennerlab/MyDesktopOrder';
+const GITHUB_URL = 'https://github.com/klennerlab/project-launcher';
 
 const EMOJIS = [
   '📁', '💼', '🌐', '📝', '💻', '📊',

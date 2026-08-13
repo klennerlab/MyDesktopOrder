@@ -1,20 +1,20 @@
 {
-  "name": "my-desktop-order",
-  "productName": "My Desktop Order",
+  "name": "project-launcher",
+  "productName": "Project Launcher",
   "version": "1.8.1",
-  "description": "Projekt-Kästchen für deinen Desktop: Webseiten in Projekten organisieren und gesammelt öffnen. / A project box for your desktop: organize websites into projects and open them together.",
+  "description": "Open everything you need for a project in one click. Websites · Terminals · Folders · Files. / Öffne alles, was du für ein Projekt brauchst, mit einem Klick. Webseiten · Terminals · Ordner · Dateien.",
   "main": "src/main.js",
-  "desktopName": "my-desktop-order.desktop",
+  "desktopName": "project-launcher.desktop",
   "license": "MIT",
   "author": "Melanie Klenner",
-  "repository": "github:klennerlab/MyDesktopOrder",
+  "repository": "github:klennerlab/project-launcher",
   "scripts": {
     "start": "electron .",
     "dist": "electron-builder"
   },
   "build": {
-    "appId": "com.klennerlab.mydesktoporder",
-    "productName": "My Desktop Order",
+    "appId": "com.klennerlab.projectlauncher",
+    "productName": "Project Launcher",
     "directories": {
       "buildResources": "build",
       "output": "dist"

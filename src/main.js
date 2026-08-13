@@ -170,7 +170,7 @@ function createTray() {
   const icon = nativeImage.createFromPath(iconPath);
   if (isMac) icon.setTemplateImage(true);
   tray = new Tray(icon);
-  tray.setToolTip('My Desktop Order');
+  tray.setToolTip('Project Launcher');
   updateTrayMenu();
 }
 
@@ -188,6 +188,19 @@ if (!gotLock) {
 
   app.whenReady().then(() => {
     dataPath = path.join(app.getPath('userData'), 'data.json');
+    // One-time migration: the app was called "My Desktop Order" before the
+    // rebranding — adopt its data so existing users keep their projects.
+    try {
+      if (!fs.existsSync(dataPath)) {
+        const legacy = path.join(path.dirname(app.getPath('userData')), 'My Desktop Order', 'data.json');
+        if (fs.existsSync(legacy)) {
+          fs.mkdirSync(app.getPath('userData'), { recursive: true });
+          fs.copyFileSync(legacy, dataPath);
+        }
+      }
+    } catch {
+      // migration is best-effort — a fresh start is better than not starting
+    }
     data = loadData();
 
     // A proper Edit menu is required on macOS so the system emoji panel
@@ -697,13 +710,13 @@ ipcMain.handle('bookmarks:read', () => {
 
 ipcMain.handle('file:export', async () => {
   const result = await dialog.showSaveDialog(win, {
-    defaultPath: 'my-desktop-order-projects.json',
+    defaultPath: 'project-launcher-projects.json',
     filters: [{ name: 'JSON', extensions: ['json'] }]
   });
   if (result.canceled || !result.filePath) return false;
   try {
     const payload = {
-      app: 'my-desktop-order',
+      app: 'project-launcher',
       kind: 'export',
       version: app.getVersion(),
       projects: data.projects,
@@ -727,8 +740,8 @@ function escapeHtml(text) {
 ipcMain.handle('file:exportHtml', async () => {
   const de = (data.settings.language || app.getLocale().toLowerCase()).startsWith('de');
   const t = de
-    ? { title: 'Meine Projekte', sites: 'Seiten', site: 'Seite', file: 'meine-projekte.html', footer: 'Erstellt mit My Desktop Order' }
-    : { title: 'My Projects', sites: 'sites', site: 'site', file: 'my-projects.html', footer: 'Created with My Desktop Order' };
+    ? { title: 'Meine Projekte', sites: 'Seiten', site: 'Seite', file: 'meine-projekte.html', footer: 'Erstellt mit Project Launcher' }
+    : { title: 'My Projects', sites: 'sites', site: 'site', file: 'my-projects.html', footer: 'Created with Project Launcher' };
 
   const result = await dialog.showSaveDialog(win, {
     defaultPath: t.file,
@@ -777,7 +790,7 @@ ipcMain.handle('file:exportHtml', async () => {
 <body>
 <h1>${t.title}</h1>
 ${sections}
-<footer>${t.footer} · https://klennerlab.github.io/MyDesktopOrder/</footer>
+<footer>${t.footer} · https://klennerlab.github.io/project-launcher/</footer>
 </body>
 </html>`;
 
@@ -798,7 +811,7 @@ ipcMain.handle('file:import', async () => {
   if (result.canceled || !result.filePaths.length) return null;
   try {
     const raw = JSON.parse(fs.readFileSync(result.filePaths[0], 'utf8'));
-    if (raw.app !== 'my-desktop-order' || !Array.isArray(raw.projects)) return { error: 'format' };
+    if (!['project-launcher', 'my-desktop-order'].includes(raw.app) || !Array.isArray(raw.projects)) return { error: 'format' };
 
     // Terminal entries can contain shell commands — warn before importing them
     const terminalCount = raw.projects.reduce(
