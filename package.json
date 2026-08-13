@@ -25,6 +25,8 @@
     "mac": {
       "category": "public.app-category.productivity",
       "artifactName": "${name}-mac-${arch}.${ext}",
+      "hardenedRuntime": true,
+      "notarize": true,
       "target": [
         {
           "target": "dmg",

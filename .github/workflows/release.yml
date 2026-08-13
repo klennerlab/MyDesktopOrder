@@ -26,6 +26,13 @@ jobs:
 
       - name: Build installers
         run: npx electron-builder --publish never
+        env:
+          # macOS code signing + notarization (ignored on Windows/Linux runners)
+          CSC_LINK: ${{ secrets.MAC_CERT_P12_BASE64 }}
+          CSC_KEY_PASSWORD: ${{ secrets.MAC_CERT_PASSWORD }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: W7WH55UBTM
 
       - name: Upload to release
         uses: softprops/action-gh-release@v2
