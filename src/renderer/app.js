@@ -102,6 +102,8 @@ const I18N = {
     groupDot: 'Gruppenfarbe ändern',
     noGroup: 'Keine Gruppe',
     groupName: 'Name (optional)',
+    groupHint: 'Klicke auf einen Farbkreis, um die Webseite dieser Gruppe zuzuordnen. Mit ✎ gibst du einer Gruppe einen Namen.',
+    groupRename: 'Gruppe benennen',
     sites: 'Seiten',
     site: 'Seite',
     lock: 'Position fixieren',
@@ -200,6 +202,8 @@ const I18N = {
     groupDot: 'Change group color',
     noGroup: 'No group',
     groupName: 'Name (optional)',
+    groupHint: 'Click a color circle to add the website to that group. Use ✎ to give a group a name.',
+    groupRename: 'Name this group',
     sites: 'sites',
     site: 'site',
     lock: 'Lock position',
@@ -860,6 +864,7 @@ function openColorModal(itemId) {
   if (!item) return;
 
   $('modal-color-title').textContent = L.groupTitle;
+  $('color-hint').textContent = L.groupHint;
   const grid = $('color-grid');
   grid.innerHTML = '';
   const options = [null, ...SCHEMES.filter((s) => s.id !== 'graphite').map((s) => s.id)];
@@ -883,25 +888,52 @@ function openColorModal(itemId) {
     row.appendChild(swatch);
 
     if (color) {
-      // Group name for this color — shared by all items of the project
-      const input = document.createElement('input');
-      input.type = 'text';
-      input.className = 'color-name-input';
-      input.maxLength = 30;
-      input.placeholder = L.groupName;
-      input.value = (project.groupNames && project.groupNames[color]) || '';
-      input.addEventListener('change', () => {
-        const name = input.value.trim();
-        if (!project.groupNames) project.groupNames = {};
-        if (name) project.groupNames[color] = name;
-        else delete project.groupNames[color];
-        saveProjects();
-        renderProject();
-      });
-      input.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') input.blur();
-      });
-      row.appendChild(input);
+      // Group name for this color — shared by all items of the project.
+      // Shown as plain text; the ✎ button swaps it for an inline input.
+      const nameText = document.createElement('span');
+      nameText.className = 'color-row-name';
+      nameText.textContent = (project.groupNames && project.groupNames[color]) || '';
+
+      const editBtn = document.createElement('button');
+      editBtn.type = 'button';
+      editBtn.className = 'icon-btn color-edit';
+      editBtn.textContent = '✎';
+      editBtn.title = L.groupRename;
+
+      const startEdit = () => {
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.className = 'color-name-input';
+        input.maxLength = 30;
+        input.placeholder = L.groupName;
+        input.value = (project.groupNames && project.groupNames[color]) || '';
+        row.replaceChild(input, nameText);
+        editBtn.hidden = true;
+        input.focus();
+        input.addEventListener('blur', () => {
+          const name = input.value.trim();
+          if (!project.groupNames) project.groupNames = {};
+          if (name) project.groupNames[color] = name;
+          else delete project.groupNames[color];
+          saveProjects();
+          nameText.textContent = name;
+          row.replaceChild(nameText, input);
+          editBtn.hidden = false;
+          renderProject();
+        });
+        input.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') input.blur();
+          if (e.key === 'Escape') {
+            e.stopPropagation();
+            input.value = (project.groupNames && project.groupNames[color]) || '';
+            input.blur();
+          }
+        });
+      };
+      editBtn.addEventListener('click', startEdit);
+      nameText.addEventListener('click', startEdit);
+
+      row.append(nameText, editBtn);
     } else {
       const label = document.createElement('span');
       label.className = 'color-row-label';
