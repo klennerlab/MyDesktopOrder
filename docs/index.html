@@ -64,6 +64,20 @@
       text-align: left;
     }
     .note b { color: #9dc0da; }
+    .note code {
+      display: inline-block;
+      background: rgba(12, 19, 27, 0.7);
+      border: 1px solid rgba(170, 205, 232, 0.2);
+      border-radius: 8px;
+      padding: 6px 10px;
+      margin: 4px 0;
+      font-size: 12.5px;
+      color: #c6dae9;
+      cursor: pointer;
+      max-width: 100%;
+      overflow-wrap: anywhere;
+    }
+    .note code:hover { background: rgba(12, 19, 27, 0.95); }
     footer { margin-top: 40px; font-size: 13px; color: rgba(198, 218, 233, 0.5); line-height: 1.7; }
     footer a { color: #85b4d6; }
   </style>
@@ -115,7 +129,7 @@
           macIntel: 'Für ältere Macs (Intel)', win: 'Für Windows herunterladen', winSub: 'Windows 10/11',
           linux: 'Für Linux herunterladen', linuxSub: 'AppImage (Ubuntu, Mint, Fedora …)',
           noteLinux: '<b>Nach dem Download (Linux):</b> Datei einmal ausführbar machen (Rechtsklick → Eigenschaften → „Als Programm ausführen“ aktivieren) und dann doppelklicken.',
-          noteMac: '<b>Nach dem Download (Mac):</b> Datei öffnen und die App in den <b>Programme</b>-Ordner ziehen – danach findest du sie bei deinen Apps, im Launchpad und über die Suche (Cmd&nbsp;+&nbsp;Leertaste). Beim allerersten Start: <b>Rechtsklick → „Öffnen“ → „Öffnen“</b> (die App ist nicht bei Apple registriert, das kostet Gebühren – der Code ist offen einsehbar auf GitHub). Tipp: Im ⋯-Menü „Beim Anmelden starten“ aktivieren, dann ist dein Kästchen nach jedem Start automatisch da.',
+          noteMac: '<b>Nach dem Download (Mac):</b> Datei öffnen und die App in den <b>Programme</b>-Ordner ziehen – danach findest du sie bei deinen Apps, im Launchpad und über die Suche (Cmd&nbsp;+&nbsp;Leertaste).<br /><br /><b>Wichtig beim ersten Start:</b> macOS meldet „Project Launcher.app ist beschädigt“. Die App ist <b>nicht</b> beschädigt – sie ist nur nicht bei Apple registriert (das kostet Gebühren; der Code ist offen einsehbar auf GitHub). Einmalig freischalten: <b>Terminal</b> öffnen (Cmd&nbsp;+&nbsp;Leertaste, „Terminal“ tippen), diesen Befehl einfügen (anklicken zum Kopieren) und Enter drücken:<br /><code id="maccmd" title="Klicken zum Kopieren">xattr -d com.apple.quarantine "/Applications/Project Launcher.app"</code><br />Danach startet die App ganz normal. Tipp: Im ⋯-Menü „Beim Anmelden starten“ aktivieren, dann ist dein Kästchen nach jedem Start automatisch da.',
           noteWin: '<b>Nach dem Download (Windows):</b> Datei doppelklicken – die App installiert sich automatisch und erscheint im Startmenü. Falls SmartScreen warnt: <b>„Weitere Informationen“ → „Trotzdem ausführen“</b>.'
         }
       : {
@@ -123,7 +137,7 @@
           macIntel: 'For older Macs (Intel)', win: 'Download for Windows', winSub: 'Windows 10/11',
           linux: 'Download for Linux', linuxSub: 'AppImage (Ubuntu, Mint, Fedora …)',
           noteLinux: '<b>After downloading (Linux):</b> make the file executable once (right-click → Properties → enable “Run as a program”), then double-click it.',
-          noteMac: '<b>After downloading (Mac):</b> open the file and drag the app into your <b>Applications</b> folder – you will then find it with your apps, in Launchpad and via search (Cmd&nbsp;+&nbsp;Space). On the very first launch: <b>right-click → “Open” → “Open”</b> (the app is not registered with Apple – that costs fees; the code is openly available on GitHub). Tip: enable “Start at login” in the ⋯ menu so your box is there after every restart.',
+          noteMac: '<b>After downloading (Mac):</b> open the file and drag the app into your <b>Applications</b> folder – you will then find it with your apps, in Launchpad and via search (Cmd&nbsp;+&nbsp;Space).<br /><br /><b>Important on first launch:</b> macOS will say “Project Launcher.app is damaged”. The app is <b>not</b> damaged – it is simply not registered with Apple (that costs fees; the code is openly available on GitHub). Unlock it once: open <b>Terminal</b> (Cmd&nbsp;+&nbsp;Space, type “Terminal”), paste this command (click to copy) and press Enter:<br /><code id="maccmd" title="Click to copy">xattr -d com.apple.quarantine "/Applications/Project Launcher.app"</code><br />After that the app opens normally. Tip: enable “Start at login” in the ⋯ menu so your box is there after every restart.',
           noteWin: '<b>After downloading (Windows):</b> double-click the file – the app installs automatically and appears in your Start menu. If SmartScreen warns you: <b>“More info” → “Run anyway”</b>.'
         };
 
@@ -152,6 +166,17 @@
       : isWin
         ? t.noteWin
         : t.noteMac + '<br /><br />' + t.noteWin;
+
+    const macCmd = document.getElementById('maccmd');
+    if (macCmd) {
+      const original = macCmd.textContent;
+      macCmd.addEventListener('click', () => {
+        navigator.clipboard.writeText(original).then(() => {
+          macCmd.textContent = de ? '✓ Kopiert – jetzt im Terminal einfügen' : '✓ Copied – now paste it into Terminal';
+          setTimeout(() => { macCmd.textContent = original; }, 2000);
+        });
+      });
+    }
   </script>
 </body>
 </html>
