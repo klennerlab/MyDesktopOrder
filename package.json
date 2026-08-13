@@ -4,6 +4,7 @@
   "version": "1.7.0",
   "description": "Projekt-Kästchen für deinen Desktop: Webseiten in Projekten organisieren und gesammelt öffnen. / A project box for your desktop: organize websites into projects and open them together.",
   "main": "src/main.js",
+  "desktopName": "my-desktop-order.desktop",
   "license": "MIT",
   "author": "Melanie Klenner",
   "repository": "github:klennerlab/MyDesktopOrder",
@@ -51,6 +52,19 @@
         },
         {
           "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "linux": {
+      "category": "Utility",
+      "artifactName": "${name}-linux-x64.${ext}",
+      "syncDesktopName": true,
+      "target": [
+        {
+          "target": "AppImage",
           "arch": [
             "x64"
           ]

@@ -337,6 +337,35 @@ function openInNewWindowWin(urls) {
   });
 }
 
+function openInNewWindowLinux(urls) {
+  return new Promise((resolve) => {
+    execFile('xdg-settings', ['get', 'default-web-browser'], (err, out) => {
+      const desktopFile = err ? '' : String(out).trim().toLowerCase();
+      let exe = null;
+      if (desktopFile.includes('google-chrome')) exe = 'google-chrome';
+      else if (desktopFile.includes('chromium')) exe = 'chromium';
+      else if (desktopFile.includes('microsoft-edge')) exe = 'microsoft-edge';
+      else if (desktopFile.includes('brave')) exe = 'brave-browser';
+      else if (desktopFile.includes('vivaldi')) exe = 'vivaldi';
+      else if (desktopFile.includes('opera')) exe = 'opera';
+      else if (desktopFile.includes('firefox')) exe = 'firefox';
+      if (!exe) return resolve(false);
+      const args = exe === 'firefox' ? ['--new-window', urls[0]] : ['--new-window', ...urls];
+      const child = spawn(exe, args, { detached: true, stdio: 'ignore' });
+      child.on('spawn', () => {
+        if (exe === 'firefox' && urls.length > 1) {
+          setTimeout(() => {
+            spawn(exe, urls.slice(1), { detached: true, stdio: 'ignore' }).unref();
+          }, 1500);
+        }
+        resolve(true);
+      });
+      child.on('error', () => resolve(false));
+      child.unref();
+    });
+  });
+}
+
 ipcMain.handle('urls:open', async (event, urls, opts) => {
   if (!Array.isArray(urls)) return 0;
   const valid = [];
@@ -356,7 +385,7 @@ ipcMain.handle('urls:open', async (event, urls, opts) => {
         ? await openInNewWindowMac(valid)
         : isWin
           ? await openInNewWindowWin(valid)
-          : false;
+          : await openInNewWindowLinux(valid);
       if (ok) return valid.length;
     } catch {
       // fall through to default behavior
@@ -551,6 +580,26 @@ function openTerminalAt(dir, command) {
   } else if (isWin) {
     const inner = command ? `cd /d "${dir}" && ${command}` : `cd /d "${dir}"`;
     spawn('cmd', ['/c', 'start', '', 'cmd', '/K', inner], { detached: true }).unref();
+  } else {
+    // Linux: try common terminal emulators until one of them exists
+    const quotedDir = `'${String(dir).replace(/'/g, `'\\''`)}'`;
+    const inner = command
+      ? `cd ${quotedDir} && ${command}; exec "$SHELL"`
+      : `cd ${quotedDir} && exec "$SHELL"`;
+    const candidates = [
+      ['x-terminal-emulator', ['-e', 'bash', '-c', inner]],
+      ['gnome-terminal', ['--', 'bash', '-c', inner]],
+      ['konsole', ['-e', 'bash', '-c', inner]],
+      ['xfce4-terminal', ['-x', 'bash', '-c', inner]],
+      ['xterm', ['-e', 'bash', '-c', inner]]
+    ];
+    const tryNext = (i) => {
+      if (i >= candidates.length) return;
+      const child = spawn(candidates[i][0], candidates[i][1], { detached: true, stdio: 'ignore' });
+      child.on('error', () => tryNext(i + 1));
+      child.unref();
+    };
+    tryNext(0);
   }
 }
 
@@ -595,7 +644,12 @@ function chromiumBookmarkFiles() {
           Edge: path.join(process.env.LOCALAPPDATA || '', 'Microsoft/Edge/User Data'),
           Brave: path.join(process.env.LOCALAPPDATA || '', 'BraveSoftware/Brave-Browser/User Data')
         }
-      : {};
+      : {
+          Chrome: path.join(home, '.config/google-chrome'),
+          Chromium: path.join(home, '.config/chromium'),
+          Edge: path.join(home, '.config/microsoft-edge'),
+          Brave: path.join(home, '.config/BraveSoftware/Brave-Browser')
+        };
   const files = [];
   for (const [browser, base] of Object.entries(bases)) {
     let entries = [];

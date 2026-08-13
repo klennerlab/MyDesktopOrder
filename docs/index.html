@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>My Desktop Order – Download</title>
-  <meta name="description" content="Ein Projekt-Kästchen für deinen Desktop – organisiere Webseiten in Projekten und öffne sie mit einem Klick. Kostenlos für macOS und Windows." />
+  <meta name="description" content="Ein Projekt-Kästchen für deinen Desktop – organisiere Webseiten in Projekten und öffne sie mit einem Klick. Kostenlos für macOS, Windows und Linux." />
   <link rel="icon" href="icon.png" />
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -94,7 +94,8 @@
     const DL = {
       macArm: BASE + 'my-desktop-order-mac-arm64.dmg',
       macIntel: BASE + 'my-desktop-order-mac-x64.dmg',
-      win: BASE + 'my-desktop-order-setup-windows.exe'
+      win: BASE + 'my-desktop-order-setup-windows.exe',
+      linux: BASE + 'my-desktop-order-linux-x64.AppImage'
     };
 
     const de = navigator.language.toLowerCase().startsWith('de');
@@ -106,17 +107,22 @@
     const ua = navigator.userAgent;
     const isMac = /Macintosh|Mac OS X/.test(ua);
     const isWin = /Windows/.test(ua);
+    const isLinux = /Linux/.test(ua) && !/Android/.test(ua);
 
     const t = de
       ? {
           macArm: 'Für Mac herunterladen', macArmSub: 'Apple Silicon (M1–M4, ab 2020)',
           macIntel: 'Für ältere Macs (Intel)', win: 'Für Windows herunterladen', winSub: 'Windows 10/11',
+          linux: 'Für Linux herunterladen', linuxSub: 'AppImage (Ubuntu, Mint, Fedora …)',
+          noteLinux: '<b>Nach dem Download (Linux):</b> Datei einmal ausführbar machen (Rechtsklick → Eigenschaften → „Als Programm ausführen“ aktivieren) und dann doppelklicken.',
           noteMac: '<b>Nach dem Download (Mac):</b> Datei öffnen und die App in den <b>Programme</b>-Ordner ziehen – danach findest du sie bei deinen Apps, im Launchpad und über die Suche (Cmd&nbsp;+&nbsp;Leertaste). Beim allerersten Start: <b>Rechtsklick → „Öffnen“ → „Öffnen“</b> (die App ist nicht bei Apple registriert, das kostet Gebühren – der Code ist offen einsehbar auf GitHub). Tipp: Im ⋯-Menü „Beim Anmelden starten“ aktivieren, dann ist dein Kästchen nach jedem Start automatisch da.',
           noteWin: '<b>Nach dem Download (Windows):</b> Datei doppelklicken – die App installiert sich automatisch und erscheint im Startmenü. Falls SmartScreen warnt: <b>„Weitere Informationen“ → „Trotzdem ausführen“</b>.'
         }
       : {
           macArm: 'Download for Mac', macArmSub: 'Apple Silicon (M1–M4, 2020 or later)',
           macIntel: 'For older Macs (Intel)', win: 'Download for Windows', winSub: 'Windows 10/11',
+          linux: 'Download for Linux', linuxSub: 'AppImage (Ubuntu, Mint, Fedora …)',
+          noteLinux: '<b>After downloading (Linux):</b> make the file executable once (right-click → Properties → enable “Run as a program”), then double-click it.',
           noteMac: '<b>After downloading (Mac):</b> open the file and drag the app into your <b>Applications</b> folder – you will then find it with your apps, in Launchpad and via search (Cmd&nbsp;+&nbsp;Space). On the very first launch: <b>right-click → “Open” → “Open”</b> (the app is not registered with Apple – that costs fees; the code is openly available on GitHub). Tip: enable “Start at login” in the ⋯ menu so your box is there after every restart.',
           noteWin: '<b>After downloading (Windows):</b> double-click the file – the app installs automatically and appears in your Start menu. If SmartScreen warns you: <b>“More info” → “Run anyway”</b>.'
         };
@@ -125,17 +131,27 @@
     if (isWin) {
       buttons.push({ href: DL.win, label: t.win, sub: t.winSub, primary: true });
       buttons.push({ href: DL.macArm, label: t.macArm, sub: t.macArmSub });
+      buttons.push({ href: DL.linux, label: t.linux, sub: t.linuxSub });
+    } else if (isLinux) {
+      buttons.push({ href: DL.linux, label: t.linux, sub: t.linuxSub, primary: true });
+      buttons.push({ href: DL.macArm, label: t.macArm, sub: t.macArmSub });
+      buttons.push({ href: DL.win, label: t.win, sub: t.winSub });
     } else {
       buttons.push({ href: DL.macArm, label: t.macArm, sub: t.macArmSub, primary: isMac });
       buttons.push({ href: DL.macIntel, label: t.macIntel });
-      buttons.push({ href: DL.win, label: t.win, sub: t.winSub, primary: isWin });
+      buttons.push({ href: DL.win, label: t.win, sub: t.winSub });
+      buttons.push({ href: DL.linux, label: t.linux, sub: t.linuxSub });
     }
 
     document.getElementById('buttons').innerHTML = buttons
       .map((b) => `<a class="btn${b.primary ? ' primary' : ''}" href="${b.href}">${b.label}${b.sub ? `<small>${b.sub}</small>` : ''}</a>`)
       .join('');
 
-    document.getElementById('note').innerHTML = isWin ? t.noteWin : t.noteMac + '<br /><br />' + t.noteWin;
+    document.getElementById('note').innerHTML = isLinux
+      ? t.noteLinux
+      : isWin
+        ? t.noteWin
+        : t.noteMac + '<br /><br />' + t.noteWin;
   </script>
 </body>
 </html>

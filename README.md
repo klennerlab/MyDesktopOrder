@@ -4,7 +4,7 @@
 
 **⬇️ Download-Seite: https://klennerlab.github.io/MyDesktopOrder/**
 
-Ein kleines Projekt-Kästchen für deinen Desktop – für **macOS** und **Windows**.
+Ein kleines Projekt-Kästchen für deinen Desktop – für **macOS**, **Windows** und **Linux**.
 
 Organisiere deine Webseiten in Projekten (z. B. „Poloflow“) und öffne sie mit einem Klick – alle auf einmal oder nur die, die du gerade brauchst. Nie wieder 20 offene Tabs, die du nicht schließen willst!
 
@@ -34,10 +34,13 @@ Lade die neueste Version von der [Releases-Seite](https://github.com/klennerlab/
 | macOS (Apple Silicon, M1–M4) | `My-Desktop-Order-…-arm64.dmg` |
 | macOS (Intel) | `My-Desktop-Order-…-x64.dmg` |
 | Windows | `My-Desktop-Order-Setup-….exe` |
+| Linux | `my-desktop-order-linux-x64.AppImage` |
 
 > **Hinweis macOS:** Die App ist nicht bei Apple notariell beglaubigt (das kostet Geld). Beim ersten Start: **Rechtsklick auf die App → „Öffnen“ → „Öffnen“**. Falls macOS die App weiterhin blockiert: Systemeinstellungen → Datenschutz & Sicherheit → „Dennoch öffnen“.
 >
 > **Hinweis Windows:** Beim ersten Start erscheint eventuell der SmartScreen-Hinweis. Klicke auf **„Weitere Informationen“ → „Trotzdem ausführen“**.
+>
+> **Hinweis Linux:** Die AppImage-Datei einmal ausführbar machen (Rechtsklick → Eigenschaften → „Als Programm ausführen“ aktivieren, oder `chmod +x` im Terminal), dann per Doppelklick starten.
 
 ## Aus dem Quellcode starten
 
@@ -56,7 +59,7 @@ Installationspakete selbst bauen: `npm run dist`
 
 # English
 
-A little project box for your desktop – for **macOS** and **Windows**.
+A little project box for your desktop – for **macOS**, **Windows** and **Linux**.
 
 Organize your websites into projects (e.g. “Poloflow”) and open them with one click – all at once, or just the ones you need right now. No more 20 open tabs you don’t dare to close!
 
@@ -86,10 +89,13 @@ Download the latest version from the [Releases page](https://github.com/klennerl
 | macOS (Apple Silicon, M1–M4) | `My-Desktop-Order-…-arm64.dmg` |
 | macOS (Intel) | `My-Desktop-Order-…-x64.dmg` |
 | Windows | `My-Desktop-Order-Setup-….exe` |
+| Linux | `my-desktop-order-linux-x64.AppImage` |
 
 > **macOS note:** The app is not notarized by Apple (that costs money). On first launch: **right-click the app → “Open” → “Open”**. If macOS still blocks it: System Settings → Privacy & Security → “Open Anyway”.
 >
 > **Windows note:** SmartScreen may warn on first launch. Click **“More info” → “Run anyway”**.
+>
+> **Linux note:** Make the AppImage file executable once (right-click → Properties → enable “Run as a program”, or `chmod +x` in a terminal), then start it with a double-click.
 
 ## Run from source
 
