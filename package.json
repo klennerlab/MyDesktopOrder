@@ -1,7 +1,7 @@
 {
   "name": "project-launcher",
   "productName": "Project Launcher",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Open everything you need for a project in one click. Websites · Terminals · Folders · Files. / Öffne alles, was du für ein Projekt brauchst, mit einem Klick. Webseiten · Terminals · Ordner · Dateien.",
   "main": "src/main.js",
   "desktopName": "project-launcher.desktop",
