@@ -100,6 +100,7 @@ const I18N = {
     groupTitle: 'Gruppe (Farbe)',
     groupDot: 'Gruppenfarbe ändern',
     noGroup: 'Keine Gruppe',
+    groupName: 'Name (optional)',
     sites: 'Seiten',
     site: 'Seite',
     lock: 'Position fixieren',
@@ -196,6 +197,7 @@ const I18N = {
     groupTitle: 'Group (color)',
     groupDot: 'Change group color',
     noGroup: 'No group',
+    groupName: 'Name (optional)',
     sites: 'sites',
     site: 'site',
     lock: 'Lock position',
@@ -527,6 +529,13 @@ function renderProject() {
     count.textContent = String(ids.length);
 
     chip.append(dot, count);
+    const groupName = project.groupNames && project.groupNames[color];
+    if (groupName) {
+      const nameEl = document.createElement('span');
+      nameEl.className = 'chip-name';
+      nameEl.textContent = groupName;
+      chip.appendChild(nameEl);
+    }
     chip.addEventListener('click', () => {
       if (allSelected) ids.forEach((id) => selectedSites.delete(id));
       else ids.forEach((id) => selectedSites.add(id));
@@ -611,7 +620,8 @@ function renderProject() {
     const colorDot = document.createElement('button');
     colorDot.type = 'button';
     colorDot.className = 'color-dot';
-    colorDot.title = L.groupDot;
+    const dotGroupName = site.color && project.groupNames && project.groupNames[site.color];
+    colorDot.title = dotGroupName ? `${dotGroupName} — ${L.groupDot}` : L.groupDot;
     colorDot.style.background = colorGradient(site.color);
     colorDot.addEventListener('click', () => openColorModal(site.id));
 
@@ -841,6 +851,9 @@ function openColorModal(itemId) {
   grid.innerHTML = '';
   const options = [null, ...SCHEMES.filter((s) => s.id !== 'graphite').map((s) => s.id)];
   for (const color of options) {
+    const row = document.createElement('div');
+    row.className = 'color-row';
+
     const swatch = document.createElement('button');
     swatch.type = 'button';
     swatch.className = 'color-swatch';
@@ -854,7 +867,35 @@ function openColorModal(itemId) {
       $('modal-color').hidden = true;
       renderProject();
     });
-    grid.appendChild(swatch);
+    row.appendChild(swatch);
+
+    if (color) {
+      // Group name for this color — shared by all items of the project
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.className = 'color-name-input';
+      input.maxLength = 30;
+      input.placeholder = L.groupName;
+      input.value = (project.groupNames && project.groupNames[color]) || '';
+      input.addEventListener('change', () => {
+        const name = input.value.trim();
+        if (!project.groupNames) project.groupNames = {};
+        if (name) project.groupNames[color] = name;
+        else delete project.groupNames[color];
+        saveProjects();
+        renderProject();
+      });
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') input.blur();
+      });
+      row.appendChild(input);
+    } else {
+      const label = document.createElement('span');
+      label.className = 'color-row-label';
+      label.textContent = L.noGroup;
+      row.appendChild(label);
+    }
+    grid.appendChild(row);
   }
   $('modal-color').hidden = false;
 }
@@ -1286,6 +1327,7 @@ async function init() {
     $('menu').hidden = true;
   });
   $('btn-scheme-close').addEventListener('click', () => ($('modal-scheme').hidden = true));
+  $('btn-color-close').addEventListener('click', () => ($('modal-color').hidden = true));
   $('menu-autostart').addEventListener('click', () => {
     openAutostartModal();
     $('menu').hidden = true;

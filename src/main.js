@@ -858,6 +858,16 @@ ipcMain.handle('file:import', async () => {
         icon: typeof project.icon === 'string' ? project.icon : null,
         ...(Array.isArray(project.types) ? { types: project.types.filter((t) => typeof t === 'string').slice(0, 4) } : {}),
         ...(typeof project.note === 'string' && project.note ? { note: project.note.slice(0, 1000) } : {}),
+        ...(project.groupNames && typeof project.groupNames === 'object' && !Array.isArray(project.groupNames)
+          ? {
+              groupNames: Object.fromEntries(
+                Object.entries(project.groupNames)
+                  .filter(([color, name]) => typeof name === 'string' && name)
+                  .slice(0, 20)
+                  .map(([color, name]) => [color.slice(0, 20), name.slice(0, 30)])
+              )
+            }
+          : {}),
         sites
       });
       imported += 1;
