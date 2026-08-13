@@ -28,7 +28,9 @@ const SCHEMES = [
   { id: 'amethyst', de: 'Amethyst',   en: 'Amethyst',     g1: '#c5abe2', g2: '#7f60ab', accent: '#9a7cc2', hover: '#ae92d4', dark: '#170f22', bg: '19, 15, 26',  tint: '197, 171, 226' },
   { id: 'amber',    de: 'Bernstein',  en: 'Amber Gold',   g1: '#e9d09c', g2: '#b08f52', accent: '#c6a468', hover: '#d8b87e', dark: '#201705', bg: '23, 18, 8',   tint: '233, 208, 156' },
   { id: 'ocean',    de: 'Ozean',      en: 'Ocean Teal',   g1: '#93d7d7', g2: '#47929e', accent: '#64abb4', hover: '#7dc2ca', dark: '#0b1d1f', bg: '10, 21, 23',  tint: '147, 215, 215' },
-  { id: 'sunset',   de: 'Koralle',    en: 'Coral Sunset', g1: '#f0b593', g2: '#c17049', accent: '#d18a64', hover: '#e0a078', dark: '#221108', bg: '25, 15, 10',  tint: '240, 181, 147' }
+  { id: 'sunset',   de: 'Koralle',    en: 'Coral Sunset', g1: '#f0b593', g2: '#c17049', accent: '#d18a64', hover: '#e0a078', dark: '#221108', bg: '25, 15, 10',  tint: '240, 181, 147' },
+  { id: 'berry',    de: 'Beere',      en: 'Berry Pink',   g1: '#e3a6c6', g2: '#a75f88', accent: '#c07ba2', hover: '#d392b7', dark: '#1f0f18', bg: '24, 13, 19',  tint: '227, 166, 198' },
+  { id: 'indigo',   de: 'Nachtblau',  en: 'Indigo',       g1: '#a9b4e0', g2: '#5f6daa', accent: '#7c89c2', hover: '#93a0d4', dark: '#0f1220', bg: '14, 16, 26',  tint: '169, 180, 224' }
 ];
 
 function applyScheme(id) {
