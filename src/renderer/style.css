@@ -484,8 +484,7 @@ main::-webkit-scrollbar-thumb {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  padding-top: 10px;
-  margin-top: auto;
+  padding: 2px 0 10px;
   flex-shrink: 0;
 }
 
