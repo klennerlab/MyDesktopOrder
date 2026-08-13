@@ -965,6 +965,14 @@ function openColorModal(itemId) {
     swatches.set(color, swatch);
     cell.appendChild(swatch);
 
+    if (!color) {
+      cell.classList.add('no-group');
+      const label = document.createElement('span');
+      label.className = 'color-cell-label';
+      label.textContent = L.noGroup;
+      cell.appendChild(label);
+    }
+
     if (color) {
       const pencil = document.createElement('button');
       pencil.type = 'button';

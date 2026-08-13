@@ -456,6 +456,18 @@ main::-webkit-scrollbar-thumb {
   gap: 3px;
 }
 
+.color-cell.no-group {
+  grid-column: span 2;
+  justify-self: start;
+  gap: 7px;
+}
+
+.color-cell-label {
+  font-size: 11.5px;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+
 .icon-btn.color-edit-mini {
   width: 20px;
   height: 20px;
