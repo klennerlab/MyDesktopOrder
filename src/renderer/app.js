@@ -874,6 +874,7 @@ function openColorModal(itemId) {
   const groupName = (color) => (project.groupNames && project.groupNames[color]) || '';
   const options = [null, ...SCHEMES.filter((s) => s.id !== 'graphite').map((s) => s.id)];
   const swatches = new Map();
+  const cellLabels = new Map();
 
   const updateSelected = () => {
     for (const [color, swatch] of swatches) {
@@ -930,6 +931,8 @@ function openColorModal(itemId) {
       saveProjects();
       const swatch = swatches.get(color);
       if (swatch) swatch.title = name;
+      const cellLabel = cellLabels.get(color);
+      if (cellLabel) cellLabel.textContent = name;
       showNameRow(color);
       renderProject();
     });
@@ -976,6 +979,13 @@ function openColorModal(itemId) {
     }
 
     if (color) {
+      // The group's name appears right next to its circle (truncated if long)
+      const label = document.createElement('span');
+      label.className = 'color-cell-label';
+      label.textContent = groupName(color);
+      cellLabels.set(color, label);
+      cell.appendChild(label);
+
       const pencil = document.createElement('button');
       pencil.type = 'button';
       pencil.className = 'icon-btn color-edit-mini';
